@@ -1,8 +1,8 @@
 import os
 import itertools
-from numpy import matlib
 from operator import mul
 from functools import reduce
+from itertools import zip_longest
 
 
 def multipliers_from_line(line):
@@ -16,11 +16,14 @@ def multipliers_from_line(line):
 
 def get_ingredients(in_file):
     acc = []
+    acc_cal = []
     open_file = open(in_file, 'r')
     for line in open_file:
-        acc.append(multipliers_from_line(line))
+        multipliers = multipliers_from_line(line)
+        acc.append(multipliers[:-1])
+        acc_cal.append(multipliers[-1])
     open_file.close()
-    return acc
+    return acc, acc_cal
 
 
 def generate_valid_volume_matrices(volume, size):
@@ -43,20 +46,26 @@ def calculate_cookie_score(volumes, ingredient_multipliers):
     return reduce(mul, totals)
 
 
-def determine_ideal_cookie(ingredient_multipliers, tsp, ignore_calories=True):
-    if ignore_calories:
-        ingredient_multipliers = [ingredient_multiplier[:-1] for ingredient_multiplier in ingredient_multipliers]
+def calories_for_volume(volume, calorie_multipliers):
+    acc = 0
+    zipped = zip_longest(volume, calorie_multipliers)
+    for vol, cal in zipped:
+        acc += vol * cal
+    return acc
+
+
+def determine_ideal_cookie(ingredient_multipliers, calorie_multipliers, tsp, target_cal):
     potential_volumes = generate_valid_volume_matrices(tsp, len(ingredient_multipliers[0]))
     best = 0
     for potential_volume in potential_volumes:
-        old_best = best
+        if calorie_multipliers and calories_for_volume(potential_volume, calorie_multipliers) != target_cal:
+            continue
         best = max(best, calculate_cookie_score(potential_volume, ingredient_multipliers))
-        if best != old_best:
-            print(potential_volume)
     return best
 
 
 if __name__ == '__main__':
     ingredients = get_ingredients(os.path.dirname(__file__) + '/input/day_15.input')
-    print(determine_ideal_cookie(ingredients, 100))
+    print(determine_ideal_cookie(ingredients[0], [], 100, 0))
+    print(determine_ideal_cookie(ingredients[0], ingredients[1], 100, 500))
 
