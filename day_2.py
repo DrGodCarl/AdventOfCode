@@ -5,10 +5,9 @@ from functools import reduce
 
 
 def get_input(in_file):
-    open_file = open(in_file, 'r')
-    for line in open_file:
-        yield [int(item) for item in line.split('x')]
-    open_file.close()
+    with open(in_file, 'r') as open_file:
+        for line in open_file:
+            yield [int(item) for item in line.split('x')]
 
 
 def size_needed(size):
