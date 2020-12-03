@@ -3,25 +3,6 @@ use std::{ops::Add, str::FromStr, string::ParseError};
 use anyhow::Result;
 use utils::{read_file, InputParseError};
 
-#[derive(Debug, Clone, PartialEq, Copy)]
-struct Point {
-    x: usize,
-    y: usize,
-}
-
-type Vector = Point;
-
-impl Add for Point {
-    type Output = Point;
-
-    fn add(self, rhs: Self) -> Self::Output {
-        Point {
-            x: self.x + rhs.x,
-            y: self.y + rhs.y,
-        }
-    }
-}
-
 struct TreeMap {
     lines: Vec<String>,
     width: usize,
@@ -51,6 +32,19 @@ impl TreeMap {
     }
 }
 
+impl FromStr for TreeMap {
+    type Err = InputParseError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let lines: Vec<String> = s.split('\n').map(|l| String::from(l)).collect();
+        let width = lines.get(0).map(|l| l.len()).unwrap_or(0);
+        if width == 0 {
+            return Err(InputParseError);
+        }
+        Ok(TreeMap { lines, width })
+    }
+}
+
 #[derive(Debug, Clone, PartialEq)]
 enum Terrain {
     Normal,
@@ -70,16 +64,22 @@ impl FromStr for Terrain {
     }
 }
 
-impl FromStr for TreeMap {
-    type Err = InputParseError;
+#[derive(Debug, Clone, PartialEq, Copy)]
+struct Point {
+    x: usize,
+    y: usize,
+}
 
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let lines: Vec<String> = s.split('\n').map(|l| String::from(l)).collect();
-        let width = lines.get(0).map(|l| l.len()).unwrap_or(0);
-        if width == 0 {
-            return Err(InputParseError);
+type Vector = Point;
+
+impl Add for Point {
+    type Output = Point;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        Point {
+            x: self.x + rhs.x,
+            y: self.y + rhs.y,
         }
-        Ok(TreeMap { lines, width })
     }
 }
 
