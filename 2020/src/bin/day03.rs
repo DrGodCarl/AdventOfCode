@@ -1,8 +1,4 @@
-use std::{
-    ops::{Add, AddAssign},
-    str::FromStr,
-    string::ParseError,
-};
+use std::{ops::Add, str::FromStr, string::ParseError};
 
 use anyhow::Result;
 use utils::{read_file, InputParseError};
@@ -23,12 +19,6 @@ impl Add for Point {
             x: self.x + rhs.x,
             y: self.y + rhs.y,
         }
-    }
-}
-
-impl AddAssign for Point {
-    fn add_assign(&mut self, rhs: Self) {
-        *self = *self + rhs;
     }
 }
 
