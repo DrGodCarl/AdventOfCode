@@ -120,47 +120,58 @@ fn main() -> Result<()> {
     Ok(())
 }
 
-#[test]
-fn test() -> Result<()> {
-    let map_input = "..##.......\n\
-            #...#...#..\n\
-            .#....#..#.\n\
-            ..#.#...#.#\n\
-            .#...##..#.\n\
-            ..#.##.....\n\
-            .#.#.#....#\n\
-            .#........#\n\
-            #.##...#...\n\
-            #...##....#\n\
-            .#..#...#.#\n\
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn test_lookup() -> Result<()> {
+        let map_input = "..##.......\n\
+        #...#...#..";
+
+        let trees: TreeMap = map_input.parse()?;
+        let point = trees.get(&Point { x: 0, y: 0 });
+        assert_eq!(point, Terrain::Normal);
+        let point = trees.get(&Point { x: 2, y: 0 });
+        assert_eq!(point, Terrain::Tree);
+        let point = trees.get(&Point { x: 0, y: 1 });
+        assert_eq!(point, Terrain::Tree);
+        let point = trees.get(&Point { x: 22, y: 1 });
+        assert_eq!(point, Terrain::Tree);
+        let point = trees.get(&Point { x: 23, y: 1 });
+        assert_eq!(point, Terrain::Normal);
+        let point = trees.get(&Point { x: 23, y: 2 });
+        assert_eq!(point, Terrain::Done);
+        Ok(())
+    }
+
+    static MAP_INPUT: &str = "..##.......\n\
+        #...#...#..\n\
+        .#....#..#.\n\
+        ..#.#...#.#\n\
+        .#...##..#.\n\
+        ..#.##.....\n\
+        .#.#.#....#\n\
+        .#........#\n\
+        #.##...#...\n\
+        #...##....#\n\
+        .#..#...#.#\n\
     ";
-    let trees: TreeMap = map_input.parse()?;
-    let result = part1(&trees);
-    assert_eq!(result, 7);
 
-    let result = part2(&trees);
-    assert_eq!(result, 336);
+    #[test]
+    fn test_part1() -> Result<()> {
+        let trees: TreeMap = MAP_INPUT.parse()?;
+        let result = part1(&trees);
+        assert_eq!(result, 7);
 
-    Ok(())
-}
+        Ok(())
+    }
 
-#[test]
-fn test_lookup() -> Result<()> {
-    let map_input = "..##.......\n\
-    #...#...#..";
+    #[test]
+    fn test_part2() -> Result<()> {
+        let trees: TreeMap = MAP_INPUT.parse()?;
+        let result = part2(&trees);
+        assert_eq!(result, 336);
 
-    let trees: TreeMap = map_input.parse()?;
-    let point = trees.get(&Point { x: 0, y: 0 });
-    assert_eq!(point, Terrain::Normal);
-    let point = trees.get(&Point { x: 2, y: 0 });
-    assert_eq!(point, Terrain::Tree);
-    let point = trees.get(&Point { x: 0, y: 1 });
-    assert_eq!(point, Terrain::Tree);
-    let point = trees.get(&Point { x: 22, y: 1 });
-    assert_eq!(point, Terrain::Tree);
-    let point = trees.get(&Point { x: 23, y: 1 });
-    assert_eq!(point, Terrain::Normal);
-    let point = trees.get(&Point { x: 23, y: 2 });
-    assert_eq!(point, Terrain::Done);
-    Ok(())
+        Ok(())
+    }
 }
