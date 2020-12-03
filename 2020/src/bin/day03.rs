@@ -51,18 +51,13 @@ impl TreeMap {
     }
 
     fn count_trees_along_slope(&self, slope: &Vector) -> usize {
-        let mut terrain = Terrain::Normal;
-        let mut current_point = Point { x: 0, y: 0 };
-        let mut tree_count = 0;
-
-        while terrain != Terrain::Done {
-            if terrain == Terrain::Tree {
-                tree_count += 1;
-            }
-            terrain = self.get(&current_point);
-            current_point += *slope;
-        }
-        tree_count
+        std::iter::successors(Some(Point { x: 0, y: 0 }), move |&current_point| {
+            Some(current_point + *slope)
+        })
+        .map(|p| self.get(&p))
+        .take_while(|t| *t != Terrain::Done)
+        .filter(|t| *t == Terrain::Tree)
+        .count()
     }
 }
 
