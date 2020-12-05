@@ -10,13 +10,12 @@ struct TreeMap {
 
 impl TreeMap {
     fn get(&self, point: &Point) -> Terrain {
-        let adjusted_x = point.x % self.width;
         self.lines
             .get(point.y)
             .and_then(|l| {
                 l.chars()
-                    .nth(adjusted_x)
-                    .and_then(|c| c.to_string().parse::<Terrain>().ok())
+                    .nth(point.x % self.width)
+                    .and_then(|c| c.to_string().parse().ok())
             })
             .unwrap_or(Terrain::Done)
     }
@@ -56,10 +55,9 @@ impl FromStr for Terrain {
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        if s == "." {
-            Ok(Terrain::Normal)
-        } else {
-            Ok(Terrain::Tree)
+        match s {
+            "." => Ok(Terrain::Normal),
+            _ => Ok(Terrain::Tree),
         }
     }
 }
