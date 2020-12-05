@@ -22,7 +22,7 @@ fn part2(partition_instrs: &Vec<String>) -> Option<usize> {
         .iter()
         .map(|s| to_seat_id(s.as_str()))
         .sorted()
-        .tuple_windows::<(_, _)>()
+        .tuple_windows()
         .find(|(a, b)| a + 1 != *b)
         .map(|(a, _)| a + 1)
 }
