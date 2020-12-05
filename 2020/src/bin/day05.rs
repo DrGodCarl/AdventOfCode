@@ -1,4 +1,4 @@
-use anyhow::{bail, Context, Result};
+use anyhow::{bail, Result};
 use itertools::{Itertools, MinMaxResult};
 use utils::read_lines;
 
@@ -17,26 +17,14 @@ fn part1(partition_instrs: &Vec<String>) -> usize {
         .unwrap_or(0)
 }
 
-fn part2(partition_instrs: &Vec<String>) -> Result<usize> {
-    enum FoldState {
-        Init,
-        Looking(usize),
-        Done(usize),
-    }
-    let search_result = partition_instrs
+fn part2(partition_instrs: &Vec<String>) -> Option<usize> {
+    partition_instrs
         .iter()
         .map(|s| to_seat_id(s.as_str()))
         .sorted()
-        .fold(FoldState::Init, |state, id| match state {
-            FoldState::Init => FoldState::Looking(id),
-            FoldState::Looking(prev) if prev == id - 1 => FoldState::Looking(id),
-            FoldState::Looking(_) => FoldState::Done(id - 1),
-            res => res,
-        });
-    match search_result {
-        FoldState::Done(res) => Ok(res),
-        _ => bail!("something went wrong"),
-    }
+        .tuple_windows::<(_, _)>()
+        .find(|(a, b)| a + 1 != *b)
+        .map(|(a, _)| a + 1)
 }
 
 fn part2_alt(partition_instrs: &Vec<String>) -> Result<usize> {
