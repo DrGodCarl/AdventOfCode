@@ -15,13 +15,13 @@ fn part1(numbers: &[i64], preamble: usize) -> Option<i64> {
                 .map(|&i| sum - i)
                 .filter(|i| i * 2 != *sum)
                 .collect();
-            match nums.iter().take(preamble).find(|&j| possible.contains(j)) {
-                Some(_) => false,
-                None => true,
-            }
+            nums.iter()
+                .take(preamble)
+                .find(|&j| possible.contains(j))
+                .is_none()
         })
         .and_then(|a| a.last())
-        .map(|i| i.to_owned())
+        .copied()
 }
 
 fn part2(numbers: &[i64], preamble: usize) -> Option<i64> {
@@ -31,14 +31,13 @@ fn part2(numbers: &[i64], preamble: usize) -> Option<i64> {
             numbers
                 .windows(range)
                 .find(|&nums| nums.iter().sum::<i64>() == target)
+                .and_then(|found| match found.iter().minmax() {
+                    MinMaxResult::MinMax(a, b) => Some(a + b),
+                    _ => None,
+                })
         })
-        .filter_map(|a| a)
-        .map(|found| match found.iter().minmax() {
-            MinMaxResult::MinMax(a, b) => Some(a + b),
-            _ => None,
-        })
-        .take(1)
-        .collect::<Vec<_>>()[0]
+        .find(|a| a.is_some())
+        .flatten()
 }
 
 fn main() -> Result<()> {
@@ -46,7 +45,7 @@ fn main() -> Result<()> {
     let result = part1(&numbers, 25).context("Failed to find an answer to part one.")?;
     println!("part 1: {}", result);
 
-    let result = part2(&numbers, 25).context("Failed to find an answer to part one.")?;
+    let result = part2(&numbers, 25).context("Failed to find an answer to part two.")?;
     println!("part 2: {}", result);
     Ok(())
 }
