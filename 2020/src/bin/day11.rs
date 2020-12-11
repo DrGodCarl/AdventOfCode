@@ -54,25 +54,34 @@ impl SeatingArea {
             .count()
     }
 
+    // vision is, in order, the cells seen when looking in a particular direction.
+    // we're looking for a chair, taken or open.
+    fn look<I>(&self, vision: I) -> Option<State>
+    where
+        I: Iterator<Item = (usize, usize)>,
+    {
+        vision
+            .map(|(i, j)| self.get_state(i, j))
+            .find(|s| s == &State::TakenChair || s == &State::OpenChair)
+    }
+
     fn vision_neighbor_count(&self, x: usize, y: usize) -> usize {
-        // I would love for these to be lazy but it's tricky.
-        let up: Vec<(usize, usize)> = (0..y).rev().map(|j| (x, j)).collect();
-        let up_right = (x + 1..self.width).zip((0..y).rev()).collect();
-        let right = (x + 1..self.width).map(|i| (i, y)).collect();
-        let down_right = (x + 1..self.width).zip(y + 1..self.height).collect();
-        let down = (y + 1..self.height).map(|j| (x, j)).collect();
-        let down_left = (0..x).rev().zip(y + 1..self.height).collect();
-        let left = (0..x).rev().map(|i| (i, y)).collect();
-        let up_left = (0..x).rev().zip((0..y).rev()).collect();
+        // Each of these represents (inter)cardinal directions as coordinates.
+        // For instance, the first one is coordinates you look at when you look
+        // up, cell by cell in the seating area
+        let up = self.look((0..y).rev().map(|j| (x, j)));
+        let up_right = self.look((x + 1..self.width).zip((0..y).rev()));
+        let right = self.look((x + 1..self.width).map(|i| (i, y)));
+        let down_right = self.look((x + 1..self.width).zip(y + 1..self.height));
+        let down = self.look((y + 1..self.height).map(|j| (x, j)));
+        let down_left = self.look((0..x).rev().zip(y + 1..self.height));
+        let left = self.look((0..x).rev().map(|i| (i, y)));
+        let up_left = self.look((0..x).rev().zip((0..y).rev()));
         [
             up, up_right, right, down_right, down, down_left, left, up_left,
         ]
         .iter()
-        .filter_map(|dir| {
-            dir.iter()
-                .map(|(i, j)| self.get_state(*i, *j))
-                .find(|s| s == &State::TakenChair || s == &State::OpenChair)
-        })
+        .filter_map(|&a| a)
         .filter(|s| s == &State::TakenChair)
         .count()
     }
