@@ -17,11 +17,18 @@ enum State {
     Floor,
 }
 
-#[derive(PartialEq, Debug, Clone)]
+#[derive(Debug, Clone)]
 struct SeatingArea {
     state: Vec<State>,
     width: usize,
     height: usize,
+    num_changed: usize,
+}
+
+impl PartialEq for SeatingArea {
+    fn eq(&self, other: &Self) -> bool {
+        self.state == other.state
+    }
 }
 
 enum Mode {
@@ -95,16 +102,22 @@ impl SeatingArea {
             .cartesian_product(0..self.height)
             .sorted_by_key(|(x, _)| *x)
             .sorted_by_key(|(_, y)| *y)
-            .map(
-                |(x, y)| match (counter(&self, x, y), self.get_state(x, y), mode) {
+            .map(|(x, y)| {
+                let old_state = self.get_state(x, y);
+                let new_state = match (counter(&self, x, y), old_state, mode) {
                     (0, State::OpenChair, _) => State::TakenChair,
                     (5..=8, State::TakenChair, _) => State::OpenChair,
-                    (4..=8, State::TakenChair, Mode::Neighbor) => State::OpenChair,
+                    (4, State::TakenChair, Mode::Neighbor) => State::OpenChair,
                     (_, state, _) => state,
-                },
-            )
-            .collect();
-        self.state = new_state;
+                };
+                ((new_state != old_state) as usize, new_state)
+            })
+            .fold((0, Vec::new()), |(acc_c, mut acc_s), (c, s)| {
+                acc_s.push(s);
+                (acc_c + c, acc_s)
+            });
+        self.num_changed = new_state.0;
+        self.state = new_state.1;
     }
 }
 
@@ -125,6 +138,7 @@ impl FromStr for SeatingArea {
             state,
             width,
             height,
+            num_changed: 0,
         })
     }
 }
@@ -150,13 +164,11 @@ impl Display for SeatingArea {
 }
 
 fn run(mut seating_area: SeatingArea, mode: &Mode, visualize: bool) -> usize {
-    let mut prev_state = seating_area.state.clone();
     loop {
         seating_area.tick(mode);
-        if seating_area.state == prev_state {
+        if seating_area.num_changed == 0 {
             break;
         }
-        prev_state = seating_area.state.clone();
         if visualize {
             print!("{}[2J", 27 as char);
             println!("{}", seating_area);
