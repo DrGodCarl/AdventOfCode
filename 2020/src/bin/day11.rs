@@ -17,18 +17,12 @@ enum State {
     Floor,
 }
 
-#[derive(Debug, Clone)]
+#[derive(PartialEq, Debug, Clone)]
 struct SeatingArea {
     state: Vec<State>,
     width: usize,
     height: usize,
-    num_changed: usize,
-}
-
-impl PartialEq for SeatingArea {
-    fn eq(&self, other: &Self) -> bool {
-        self.state == other.state
-    }
+    changed: bool,
 }
 
 enum Mode {
@@ -98,6 +92,7 @@ impl SeatingArea {
             Mode::Neighbor => Self::neighbor_count,
             Mode::Vision => Self::vision_neighbor_count,
         };
+        let mut changed = false;
         let new_state = (0..self.width)
             .cartesian_product(0..self.height)
             .sorted_by_key(|(x, _)| *x)
@@ -110,14 +105,12 @@ impl SeatingArea {
                     (4, State::TakenChair, Mode::Neighbor) => State::OpenChair,
                     (_, state, _) => state,
                 };
-                ((new_state != old_state) as usize, new_state)
+                changed = changed || new_state != old_state;
+                new_state
             })
-            .fold((0, Vec::new()), |(acc_c, mut acc_s), (c, s)| {
-                acc_s.push(s);
-                (acc_c + c, acc_s)
-            });
-        self.num_changed = new_state.0;
-        self.state = new_state.1;
+            .collect();
+        self.changed = changed;
+        self.state = new_state;
     }
 }
 
@@ -138,7 +131,7 @@ impl FromStr for SeatingArea {
             state,
             width,
             height,
-            num_changed: 0,
+            changed: false,
         })
     }
 }
@@ -166,7 +159,7 @@ impl Display for SeatingArea {
 fn run(mut seating_area: SeatingArea, mode: &Mode, visualize: bool) -> usize {
     loop {
         seating_area.tick(mode);
-        if seating_area.num_changed == 0 {
+        if !seating_area.changed {
             break;
         }
         if visualize {
@@ -205,10 +198,10 @@ mod tests {
         let mut seating: SeatingArea = read_file("input/test/day11_1.1.txt")?;
         seating.tick(&Mode::Neighbor);
         let expected: SeatingArea = read_file("input/test/day11_1.2.txt")?;
-        assert_eq!(seating, expected);
+        assert_eq!(seating.state, expected.state);
         seating.tick(&Mode::Neighbor);
         let expected: SeatingArea = read_file("input/test/day11_1.3.txt")?;
-        assert_eq!(seating, expected);
+        assert_eq!(seating.state, expected.state);
 
         Ok(())
     }
@@ -218,10 +211,10 @@ mod tests {
         let mut seating: SeatingArea = read_file("input/test/day11_2.1.txt")?;
         seating.tick(&Mode::Vision);
         let expected: SeatingArea = read_file("input/test/day11_2.2.txt")?;
-        assert_eq!(seating, expected);
+        assert_eq!(seating.state, expected.state);
         seating.tick(&Mode::Vision);
         let expected: SeatingArea = read_file("input/test/day11_2.3.txt")?;
-        assert_eq!(seating, expected);
+        assert_eq!(seating.state, expected.state);
 
         Ok(())
     }
