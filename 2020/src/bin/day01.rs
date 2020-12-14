@@ -5,7 +5,7 @@ use utils::read_lines;
 fn part1(numbers: &[i32]) -> Option<i32> {
     numbers
         .iter()
-        .cartesian_product(numbers)
+        .tuple_combinations()
         .find(|(&a, &b)| a + b == 2020)
         .map(|(a, b)| a * b)
 }
@@ -13,10 +13,9 @@ fn part1(numbers: &[i32]) -> Option<i32> {
 fn part2(numbers: &[i32]) -> Option<i32> {
     numbers
         .iter()
-        .cartesian_product(numbers)
-        .cartesian_product(numbers)
-        .find(|((&a, &b), &c)| a + b + c == 2020)
-        .map(|((a, b), c)| a * b * c)
+        .tuple_combinations()
+        .find(|(&a, &b, &c)| a + b + c == 2020)
+        .map(|(a, b, c)| a * b * c)
 }
 
 fn main() -> Result<()> {
