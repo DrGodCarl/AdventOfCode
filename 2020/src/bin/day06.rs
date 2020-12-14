@@ -4,18 +4,18 @@ use anyhow::Result;
 use itertools::Itertools;
 use utils::read_file;
 
-fn break_up_answers(answer_text: &String) -> Vec<Vec<&str>> {
+fn break_up_answers(answer_text: &str) -> Vec<Vec<&str>> {
     answer_text
         .split("\n\n")
         .map(|ans_block| ans_block.split_whitespace().collect())
         .collect()
 }
 
-fn count_unique_answers(answers: &Vec<&str>) -> usize {
+fn count_unique_answers(answers: &[&str]) -> usize {
     answers.iter().flat_map(|&l| l.chars()).unique().count()
 }
 
-fn count_common_answers(answers: &Vec<&str>) -> usize {
+fn count_common_answers(answers: &[&str]) -> usize {
     answers
         .iter()
         .map(|&l| l.chars().collect::<HashSet<_>>())
@@ -26,11 +26,11 @@ fn count_common_answers(answers: &Vec<&str>) -> usize {
         .len()
 }
 
-fn part1(all_answers: &Vec<Vec<&str>>) -> usize {
+fn part1(all_answers: &[Vec<&str>]) -> usize {
     all_answers.iter().map(|a| count_unique_answers(a)).sum()
 }
 
-fn part2(all_answers: &Vec<Vec<&str>>) -> usize {
+fn part2(all_answers: &[Vec<&str>]) -> usize {
     all_answers.iter().map(|a| count_common_answers(a)).sum()
 }
 

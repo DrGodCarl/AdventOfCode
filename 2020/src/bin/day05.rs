@@ -9,7 +9,7 @@ fn to_seat_id(partition_instr: &str) -> usize {
     usize::from_str_radix(bin_str.as_str(), 2).unwrap()
 }
 
-fn part1(partition_instrs: &Vec<String>) -> usize {
+fn part1(partition_instrs: &[String]) -> usize {
     partition_instrs
         .iter()
         .map(|s| to_seat_id(s.as_str()))
@@ -17,7 +17,7 @@ fn part1(partition_instrs: &Vec<String>) -> usize {
         .unwrap_or(0)
 }
 
-fn part2(partition_instrs: &Vec<String>) -> Option<usize> {
+fn part2(partition_instrs: &[String]) -> Option<usize> {
     partition_instrs
         .iter()
         .map(|s| to_seat_id(s.as_str()))
@@ -27,7 +27,7 @@ fn part2(partition_instrs: &Vec<String>) -> Option<usize> {
         .map(|(a, _)| a + 1)
 }
 
-fn part2_alt(partition_instrs: &Vec<String>) -> Result<usize> {
+fn part2_alt(partition_instrs: &[String]) -> Result<usize> {
     let seat_ids: Vec<usize> = partition_instrs
         .iter()
         .map(|s| to_seat_id(s.as_str()))

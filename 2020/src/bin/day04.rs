@@ -16,7 +16,7 @@ fn parse_passport_record(s: &str) -> PassportRecord {
         .collect()
 }
 
-fn parse_passport_records<'a>(s: &'a String) -> Vec<PassportRecord<'a>> {
+fn parse_passport_records<'a>(s: &'a str) -> Vec<PassportRecord<'a>> {
     s.split("\n\n").map(|r| parse_passport_record(r)).collect()
 }
 
@@ -60,11 +60,11 @@ fn validate_content(passport_record: &PassportRecord) -> bool {
     })
 }
 
-fn part1(passports: &Vec<PassportRecord>) -> usize {
+fn part1(passports: &[PassportRecord]) -> usize {
     passports.iter().filter(|&p| validate_fields(p)).count()
 }
 
-fn part2(passports: &Vec<PassportRecord>) -> usize {
+fn part2(passports: &[PassportRecord]) -> usize {
     passports
         .iter()
         .filter(|&p| validate_fields(p))

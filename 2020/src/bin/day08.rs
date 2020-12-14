@@ -152,9 +152,8 @@ fn part2(program: &mut Program) -> Option<isize> {
         if !program.swap_nop_jmp(i) {
             continue;
         }
-        match detect_loop(program) {
-            Ok(res) => return Some(res.acc),
-            Err(_) => {}
+        if let Ok(res) = detect_loop(program) {
+            return Some(res.acc);
         }
     }
     None

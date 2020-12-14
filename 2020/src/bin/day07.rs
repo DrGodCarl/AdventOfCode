@@ -23,7 +23,7 @@ impl FromStr for BagGraph {
         for cap in rule_re.captures_iter(s) {
             let container = String::from(cap.get(1).unwrap().as_str());
             let children_str = cap.get(2).unwrap().as_str();
-            let entry = graph.entry(container).or_insert_with(|| Vec::new());
+            let entry = graph.entry(container).or_insert_with(Vec::new);
             for child_cap in bag_count_re.captures_iter(children_str) {
                 let child = String::from(child_cap.get(2).unwrap().as_str());
                 let count = child_cap.get(1).unwrap().as_str().parse().unwrap();
@@ -41,7 +41,7 @@ impl BagGraph {
 
         for (bag, contents) in self.map.clone() {
             for (num, inner_bag) in contents {
-                let entry = result.entry(inner_bag).or_insert_with(|| Vec::new());
+                let entry = result.entry(inner_bag).or_insert_with(Vec::new);
                 entry.push((num, bag.clone()));
             }
         }

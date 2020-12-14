@@ -35,7 +35,7 @@ impl FromStr for TreeMap {
     type Err = InputParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let lines: Vec<String> = s.split('\n').map(|l| String::from(l)).collect();
+        let lines: Vec<String> = s.split('\n').map(String::from).collect();
         let width = lines.get(0).map(|l| l.len()).unwrap_or(0);
         if width == 0 {
             return Err(InputParseError);

@@ -57,7 +57,7 @@ impl State {
         };
         State {
             bearing: self.bearing,
-            position: position,
+            position,
             waypoint: self.waypoint,
         }
     }
@@ -153,12 +153,12 @@ fn next_state(state: State, instruction: &Instr) -> State {
     }
 }
 
-fn part1(instructions: &Vec<Instr>) -> usize {
+fn part1(instructions: &[Instr]) -> usize {
     let result = instructions.iter().fold(State::new(), next_state_naive);
     (result.position.0.abs() + result.position.1.abs()) as usize
 }
 
-fn part2(instructions: &Vec<Instr>) -> usize {
+fn part2(instructions: &[Instr]) -> usize {
     let result = instructions
         .iter()
         .fold(State::with_waypoint((10, 1)), next_state);

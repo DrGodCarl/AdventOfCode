@@ -59,10 +59,10 @@ impl SeatingArea {
     }
 
     fn find_physical_neighbors(&self, point: &Point) -> Vec<Point> {
-        let (x, y) = point.clone();
-        let x_min = x.checked_sub(1).unwrap_or(0);
+        let (x, y) = *point;
+        let x_min = x.saturating_sub(1);
         let x_max = min(x + 1, self.width - 1);
-        let y_min = y.checked_sub(1).unwrap_or(0);
+        let y_min = y.saturating_sub(1);
         let y_max = min(y + 1, self.height - 1);
         (x_min..=x_max)
             .cartesian_product(y_min..=y_max)
@@ -84,7 +84,7 @@ impl SeatingArea {
         // Each of these represents (inter)cardinal directions as coordinates.
         // For instance, the first one is coordinates you look at when you look
         // up, cell by cell in the seating area
-        let (x, y) = point.clone();
+        let (x, y) = *point;
         let up = self.look_for_chair((0..y).rev().map(|j| (x, j)));
         let up_right = self.look_for_chair((x + 1..self.width).zip((0..y).rev()));
         let right = self.look_for_chair((x + 1..self.width).map(|i| (i, y)));
@@ -120,7 +120,7 @@ impl SeatingArea {
     }
 
     fn tick(&mut self, mode: &Mode) {
-        if self.graph.len() == 0 {
+        if self.graph.is_empty() {
             self.build_graph(mode);
         }
         let map: Vec<(&Point, State)> = self
@@ -141,7 +141,7 @@ impl SeatingArea {
                 }
             })
             .collect();
-        self.changed = map.len() > 0;
+        self.changed = !map.is_empty();
         for (p, s) in map {
             let index = self.get_index(p);
             self.state[index] = s;

@@ -16,7 +16,7 @@ impl FromStr for World {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let input: Vec<&str> = s.split_whitespace().collect();
         let time = input[0].parse().unwrap();
-        let bus_schedule = input[1].split(",").map(|num| num.parse().ok()).collect();
+        let bus_schedule = input[1].split(',').map(|num| num.parse().ok()).collect();
         Ok(World { time, bus_schedule })
     }
 }
@@ -27,7 +27,7 @@ fn part1(world: &World) -> Option<u64> {
         .iter()
         .filter_map(|&t| t)
         .map(|t| (t, t - (world.time % t)))
-        .sorted_by_key(|(_, r)| r.clone())
+        .sorted_by_key(|(_, r)| *r)
         .next();
     result.map(|(bus_id, num_of_min)| bus_id * num_of_min)
 }
