@@ -127,18 +127,12 @@ impl SeatingArea {
             .graph
             .keys()
             .map(|p| (p, self.count_occupied_neighbors(p), self.get_state(p)))
-            .filter_map(|(p, c, old_state)| {
-                let new_state = match (c, old_state, mode) {
-                    (0, State::OpenChair, _) => State::TakenChair,
-                    (5..=8, State::TakenChair, _) => State::OpenChair,
-                    (4, State::TakenChair, Mode::Neighbor) => State::OpenChair,
-                    (_, state, _) => state,
-                };
-                if new_state != old_state {
-                    Some((p, new_state))
-                } else {
-                    None
+            .filter_map(|(p, c, old_state)| match (c, old_state, mode) {
+                (0, State::OpenChair, _) => Some((p, State::TakenChair)),
+                (5..=8, State::TakenChair, _) | (4, State::TakenChair, Mode::Neighbor) => {
+                    Some((p, State::OpenChair))
                 }
+                _ => None,
             })
             .collect();
         self.changed = !map.is_empty();
