@@ -1,5 +1,8 @@
+#![feature(min_const_generics)]
+
 use std::{
     collections::{HashMap, HashSet},
+    iter,
     str::FromStr,
     string::ParseError,
 };
@@ -9,8 +12,6 @@ use itertools::Itertools;
 use parse_display::{Display, FromStr};
 use utils::{read_file, InputParseError};
 
-type Point = (isize, isize, isize);
-
 #[derive(parse_display::FromStr, PartialEq, Debug, Clone, Copy)]
 enum State {
     #[display("#")]
@@ -19,27 +20,32 @@ enum State {
     Inactive,
 }
 
-struct PocketDimension {
+type Point = Vec<isize>;
+
+struct PocketDimension<const N: usize> {
     state: HashMap<Point, State>,
 }
 
-impl PocketDimension {
+impl<const N: usize> PocketDimension<N> {
     fn tick(&mut self) {
         self.state = self
             .state
             .keys()
-            .flat_map(|p| get_neighborhood(p))
+            .flat_map(|p| self.get_neighborhood(p))
             .unique()
-            .map(|p| (p, self.new_state_for_point(&p)))
+            .map(|p| {
+                let new = self.new_state_for_point(&p);
+                (p, new)
+            })
             .collect();
     }
 
-    fn state_for_point(&self, point: &Point) -> &State {
+    fn state_for_point(&self, point: &Vec<isize>) -> &State {
         self.state.get(point).unwrap_or(&State::Inactive)
     }
 
-    fn new_state_for_point(&self, point: &Point) -> State {
-        let neighborhood = get_neighborhood(point);
+    fn new_state_for_point(&self, point: &Vec<isize>) -> State {
+        let neighborhood = self.get_neighborhood(point);
         let active_neighbor_count = neighborhood
             .iter()
             .filter(|&p| p != point)
@@ -55,9 +61,34 @@ impl PocketDimension {
     fn count_active(&self) -> usize {
         self.state.values().filter(|&s| s == &State::Active).count()
     }
+
+    // this will include the point passed in
+    fn get_neighborhood(&self, point: &Point) -> Vec<Point> {
+        (0..N)
+            .map(|n| (point[n] - 1..=point[n] + 1))
+            .fold(Vec::new(), |acc, r| {
+                let mut new_acc = vec![];
+                let is_empty = acc.is_empty();
+                for i in r {
+                    if is_empty {
+                        new_acc.push(vec![i]);
+                    } else {
+                        for point in &acc {
+                            let new_point = point
+                                .iter()
+                                .copied()
+                                .chain(iter::once(i))
+                                .collect::<Vec<isize>>();
+                            new_acc.push(new_point);
+                        }
+                    }
+                }
+                new_acc
+            })
+    }
 }
 
-impl FromStr for PocketDimension {
+impl<const N: usize> FromStr for PocketDimension<N> {
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
@@ -69,7 +100,12 @@ impl FromStr for PocketDimension {
                     .map(|c| c.to_string())
                     .filter_map(|c| c.parse::<State>().ok())
                     .enumerate()
-                    .map(|(x, s)| ((x as isize, y as isize, 0), s))
+                    .map(|(x, s)| {
+                        let mut base_vec = vec![0; N];
+                        base_vec[0] = x as isize;
+                        base_vec[1] = y as isize;
+                        (base_vec, s)
+                    })
                     .collect::<Vec<_>>() // need to collect so y can keep living
             })
             .collect();
@@ -77,22 +113,14 @@ impl FromStr for PocketDimension {
     }
 }
 
-// this will include the point passed in
-fn get_neighborhood(point: &Point) -> Vec<Point> {
-    (point.0 - 1..=point.0 + 1)
-        .cartesian_product(point.1 - 1..=point.1 + 1)
-        .cartesian_product(point.2 - 1..=point.2 + 1)
-        .map(|((x, y), z)| (x, y, z))
-        .collect()
-}
-
-fn part1(mut pocket_dimension: PocketDimension) -> usize {
+fn part1(mut pocket_dimension: PocketDimension<3>) -> usize {
     (0..6).for_each(|_| pocket_dimension.tick());
     pocket_dimension.count_active()
 }
 
-fn part2(pocket_dimension: PocketDimension) -> usize {
-    0
+fn part2(mut pocket_dimension: PocketDimension<4>) -> usize {
+    (0..6).for_each(|_| pocket_dimension.tick());
+    pocket_dimension.count_active()
 }
 
 fn main() -> Result<()> {
