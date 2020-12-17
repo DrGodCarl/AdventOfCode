@@ -20,6 +20,35 @@ impl std::error::Error for InputParseError {
     }
 }
 
+pub fn parse_comma_separated<F: FromStr>(line: &str) -> Result<Vec<F>>
+where
+    <F as FromStr>::Err: std::error::Error,
+    <F as FromStr>::Err: Send,
+    <F as FromStr>::Err: Sync,
+    <F as FromStr>::Err: 'static,
+{
+    line.split(',')
+        .map(|i| Ok(i.parse::<F>()?))
+        .collect::<Result<Vec<_>, _>>()
+}
+
+pub fn read_comma_separated<F: FromStr>(path: &str) -> Result<Vec<F>>
+where
+    <F as FromStr>::Err: std::error::Error,
+    <F as FromStr>::Err: Send,
+    <F as FromStr>::Err: Sync,
+    <F as FromStr>::Err: 'static,
+{
+    let input = File::open(path)?;
+    let buffered = BufReader::new(input);
+
+    buffered
+        .lines()
+        .next()
+        .map(|s| parse_comma_separated(s?.as_str()))
+        .unwrap()
+}
+
 pub fn read_lines<F: FromStr>(path: &str) -> Result<Vec<F>>
 where
     <F as FromStr>::Err: std::error::Error,

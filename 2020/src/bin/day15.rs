@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use anyhow::Result;
-use utils::read_file;
+use utils::read_comma_separated;
 
 enum History {
     First(u32),
@@ -47,10 +47,7 @@ fn part2(numbers: &[u32]) -> u32 {
 }
 
 fn main() -> Result<()> {
-    let numbers = read_file::<String>("input/day15.txt")?
-        .split(',')
-        .map(|i| i.parse())
-        .collect::<Result<Vec<_>, _>>()?;
+    let numbers = read_comma_separated("input/day15.txt")?;
     let result = part1(&numbers);
     println!("part 1: {}", result);
 
