@@ -68,7 +68,7 @@ fn main() -> Result<()> {
 mod tests {
     use super::*;
     #[test]
-    fn test_part1() -> Result<()> {
+    fn test_part1() {
         let adapters = vec![16, 10, 15, 5, 1, 11, 7, 19, 6, 12, 4];
         let result = part1(&adapters);
         assert_eq!(result, 7 * 5);
@@ -79,12 +79,10 @@ mod tests {
         ];
         let result = part1(&adapters);
         assert_eq!(result, 22 * 10);
-
-        Ok(())
     }
 
     #[test]
-    fn test_part2() -> Result<()> {
+    fn test_part2() {
         let adapters = vec![16, 10, 15, 5, 1, 11, 7, 19, 6, 12, 4];
         let result = part2(&adapters);
         assert_eq!(result, 8);
@@ -95,7 +93,5 @@ mod tests {
         ];
         let result = part2(&adapters);
         assert_eq!(result, 19208);
-
-        Ok(())
     }
 }

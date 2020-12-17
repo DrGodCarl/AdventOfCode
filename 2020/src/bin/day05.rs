@@ -55,7 +55,7 @@ fn main() -> Result<()> {
 mod tests {
     use super::*;
     #[test]
-    fn test_to_seat_id() -> Result<()> {
+    fn test_to_seat_id() {
         let seat = "FBFBBFFRLR";
         let seat_id = to_seat_id(seat);
         assert_eq!(seat_id, 357);
@@ -65,6 +65,5 @@ mod tests {
         let seat = "BBBBBBBRRR";
         let seat_id = to_seat_id(seat);
         assert_eq!(seat_id, 1023);
-        Ok(())
     }
 }

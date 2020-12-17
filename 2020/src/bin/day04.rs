@@ -16,7 +16,7 @@ fn parse_passport_record(s: &str) -> PassportRecord {
         .collect()
 }
 
-fn parse_passport_records<'a>(s: &'a str) -> Vec<PassportRecord<'a>> {
+fn parse_passport_records(s: &str) -> Vec<PassportRecord<'_>> {
     s.split("\n\n").map(|r| parse_passport_record(r)).collect()
 }
 
@@ -87,7 +87,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_parse_one_record() -> Result<()> {
+    fn test_parse_one_record() {
         let _: PassportRecord = parse_passport_record(
             "ecl:gry pid:860033327 eyr:2020 hcl:#fffffd\n\
              byr:1937 iyr:2017 cid:147 hgt:183cm",
@@ -96,11 +96,10 @@ mod tests {
             "iyr:2013 ecl:amb cid:350 eyr:2023 pid:028048884\n\
              hcl:#cfa07d byr:1929",
         );
-        Ok(())
     }
 
     #[test]
-    fn test_part1() -> Result<()> {
+    fn test_part1() {
         let passport_input = String::from(
             "ecl:gry pid:860033327 eyr:2020 hcl:#fffffd\n\
              byr:1937 iyr:2017 cid:147 hgt:183cm\n\
@@ -119,12 +118,10 @@ mod tests {
         let passports = parse_passport_records(&passport_input);
         let result = part1(&passports);
         assert_eq!(result, 2);
-
-        Ok(())
     }
 
     #[test]
-    fn test_part2() -> Result<()> {
+    fn test_part2() {
         let bad_passport_input = String::from(
             "eyr:1972 cid:100\n\
              hcl:#18171d ecl:amb hgt:170 pid:186cm iyr:2018 byr:1926\n\
@@ -163,6 +160,5 @@ mod tests {
 
         let result = part2(&good_passports);
         assert_eq!(result, 4);
-        Ok(())
     }
 }

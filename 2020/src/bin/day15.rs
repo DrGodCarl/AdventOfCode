@@ -60,7 +60,7 @@ fn main() -> Result<()> {
 mod tests {
     use super::*;
     #[test]
-    fn test_part1() -> Result<()> {
+    fn test_part1() {
         let numbers = vec![1, 3, 2];
         let result = part1(&numbers);
         assert_eq!(result, 1);
@@ -76,7 +76,5 @@ mod tests {
         let numbers = vec![3, 1, 2];
         let result = part1(&numbers);
         assert_eq!(result, 1836);
-
-        Ok(())
     }
 }
