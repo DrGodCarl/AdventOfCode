@@ -1,16 +1,10 @@
 #![feature(min_const_generics)]
 
-use std::{
-    collections::{HashMap, HashSet},
-    iter,
-    str::FromStr,
-    string::ParseError,
-};
+use std::{collections::HashMap, iter, str::FromStr, string::ParseError};
 
 use anyhow::Result;
 use itertools::Itertools;
-use parse_display::{Display, FromStr};
-use utils::{read_file, InputParseError};
+use utils::read_file;
 
 #[derive(parse_display::FromStr, PartialEq, Debug, Clone, Copy)]
 enum State {
@@ -40,10 +34,12 @@ impl<const N: usize> PocketDimension<N> {
             .collect();
     }
 
+    #[allow(clippy::ptr_arg)]
     fn state_for_point(&self, point: &Vec<isize>) -> &State {
         self.state.get(point).unwrap_or(&State::Inactive)
     }
 
+    #[allow(clippy::ptr_arg)]
     fn new_state_for_point(&self, point: &Vec<isize>) -> State {
         let neighborhood = self.get_neighborhood(point);
         let active_neighbor_count = neighborhood
@@ -63,7 +59,7 @@ impl<const N: usize> PocketDimension<N> {
     }
 
     // this will include the point passed in
-    fn get_neighborhood(&self, point: &Point) -> Vec<Point> {
+    fn get_neighborhood(&self, point: &[isize]) -> Vec<Point> {
         (0..N)
             .map(|n| (point[n] - 1..=point[n] + 1))
             .fold(Vec::new(), |acc, r| {
