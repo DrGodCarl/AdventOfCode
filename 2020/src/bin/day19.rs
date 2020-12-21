@@ -1,4 +1,4 @@
-use std::{collections::HashMap, iter, str::FromStr, string::ParseError};
+use std::{collections::HashMap, str::FromStr};
 
 use anyhow::Result;
 use itertools::Itertools;
@@ -12,6 +12,36 @@ enum Rule {
     Char(char),
     Matches(Vec<usize>),
     MatchesOneOf(Vec<Vec<usize>>),
+    None,
+}
+
+impl Rule {
+    fn by_removing_references(&self, references: &[usize]) -> Self {
+        match self {
+            Rule::Char(c) => Rule::Char(*c),
+            Rule::Matches(indices) => {
+                let contains = references.iter().any(|r| indices.contains(r));
+                if contains {
+                    Rule::None
+                } else {
+                    Rule::Matches(indices.clone())
+                }
+            }
+            Rule::MatchesOneOf(or_indices) => {
+                let new_or_indices = or_indices
+                    .iter()
+                    .filter(|inds| !references.iter().any(|r| inds.contains(r)))
+                    .cloned()
+                    .collect::<Vec<Vec<usize>>>();
+                if new_or_indices.is_empty() {
+                    Rule::None
+                } else {
+                    Rule::MatchesOneOf(new_or_indices)
+                }
+            }
+            Rule::None => Rule::None,
+        }
+    }
 }
 
 impl FromStr for Rule {
@@ -79,44 +109,89 @@ impl FromStr for RulesAndMessages {
     }
 }
 
-fn create_regex(rules: &RuleSet, start: usize) -> Regex {
-    Regex::new(format!("^{}$", create_regex_string(rules, &start)).as_str()).unwrap()
+struct RegexGenerator {
+    max_depth: usize,
+    incestuous_depth_counter: HashMap<usize, usize>,
 }
 
-fn create_regex_string(rules: &RuleSet, start: &usize) -> String {
-    let rule = &rules[start];
+impl RegexGenerator {
+    fn new(incestuous_rules: Vec<usize>, max_depth: usize) -> Self {
+        RegexGenerator {
+            max_depth,
+            incestuous_depth_counter: incestuous_rules.iter().map(|i| (*i, 0usize)).collect(),
+        }
+    }
 
-    match rule {
-        Rule::Char(c) => c.to_string(),
-        Rule::Matches(indices) => indices
-            .iter()
-            .map(|i| create_regex_string(rules, i))
-            .join(""),
-        Rule::MatchesOneOf(inner_rules) => {
-            let ors = inner_rules
+    fn default() -> Self {
+        RegexGenerator {
+            max_depth: 0,
+            incestuous_depth_counter: HashMap::new(),
+        }
+    }
+
+    fn create_regex(&mut self, rules: &RuleSet, start: usize) -> Regex {
+        Regex::new(format!("^{}$", self.create_regex_string(rules, &start)).as_str()).unwrap()
+    }
+
+    fn create_regex_string(&mut self, rules: &RuleSet, start: &usize) -> String {
+        let rule = &rules[start];
+
+        if let Some(c) = self.incestuous_depth_counter.get(start) {
+            if c > &self.max_depth {
+                self.incestuous_depth_counter.insert(*start, 0);
+                let references = self
+                    .incestuous_depth_counter
+                    .keys()
+                    .cloned()
+                    .collect::<Vec<_>>();
+                let adjusted_rule = rule.by_removing_references(&references);
+                return self.create_regex_string_for_rule(rules, &adjusted_rule);
+            }
+            *self.incestuous_depth_counter.entry(*start).or_insert(0) += 1;
+        }
+
+        self.create_regex_string_for_rule(rules, rule)
+    }
+
+    fn create_regex_string_for_rule(&mut self, rules: &RuleSet, rule: &Rule) -> String {
+        match rule {
+            Rule::Char(c) => c.to_string(),
+            Rule::Matches(indices) => indices
                 .iter()
-                .map(|i| i.iter().map(|i| create_regex_string(rules, i)).join(""))
-                .join("|");
-            format!("({})", ors)
+                .map(|i| self.create_regex_string(rules, i))
+                .join(""),
+            Rule::MatchesOneOf(or_indices) => {
+                let ors = or_indices
+                    .iter()
+                    .map(|i| {
+                        i.iter()
+                            .map(|i| self.create_regex_string(rules, i))
+                            .join("")
+                    })
+                    .join("|");
+                format!("({})", ors)
+            }
+            Rule::None => "".to_string(),
         }
     }
 }
 
 fn part1(rules: &RuleSet, messages: &[String]) -> usize {
-    let regex = create_regex(rules, 0);
-    println!("{:?}", regex);
+    let mut generator = RegexGenerator::default();
+    let regex = generator.create_regex(rules, 0);
     messages.iter().filter(|m| regex.is_match(m)).count()
 }
 
 fn part2(rules: &mut RuleSet, messages: &[String]) -> usize {
+    let mut generator = RegexGenerator::new(vec![8, 11], 3);
     rules.insert(8, Rule::MatchesOneOf(vec![vec![42], vec![42, 8]]));
     rules.insert(11, Rule::MatchesOneOf(vec![vec![42, 31], vec![42, 11, 31]]));
-    part1(&rules, &messages)
+    let regex = generator.create_regex(rules, 0);
+    messages.iter().filter(|m| regex.is_match(m)).count()
 }
 
 fn main() -> Result<()> {
     let input = read_file("input/day19.txt")?;
-    println!("{:?}", input);
     let RulesAndMessages(mut rules, messages) = input;
     let result = part1(&rules, &messages);
     println!("part 1: {}", result);
