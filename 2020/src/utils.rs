@@ -49,6 +49,21 @@ where
         .unwrap()
 }
 
+pub fn read_chunks<F: FromStr>(path: &str) -> Result<Vec<F>>
+where
+    <F as FromStr>::Err: std::error::Error,
+    <F as FromStr>::Err: Send,
+    <F as FromStr>::Err: Sync,
+    <F as FromStr>::Err: 'static,
+{
+    let contents = fs::read_to_string(path)?;
+
+    contents
+        .split("\n\n")
+        .map(|line| Ok(line.parse::<F>()?))
+        .collect()
+}
+
 pub fn read_lines<F: FromStr>(path: &str) -> Result<Vec<F>>
 where
     <F as FromStr>::Err: std::error::Error,
