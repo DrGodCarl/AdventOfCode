@@ -1,10 +1,7 @@
 #[macro_use]
 extern crate lazy_static;
 use std::{
-    cell::{Cell, RefCell},
-    cmp::min,
-    collections::HashMap,
-    fmt::Display,
+    collections::{HashMap, HashSet},
     str::FromStr,
 };
 
@@ -219,7 +216,7 @@ enum Dir {
 
 struct PuzzleMap {
     puzzle_pieces: HashMap<u64, MapChunk>,
-    solution: HashMap<(usize, usize), u64>,
+    solution: HashMap<(isize, isize), u64>,
     all_edges: HashMap<String, Vec<u64>>,
 }
 
@@ -299,35 +296,16 @@ impl PuzzleMap {
         let chunk = self.puzzle_pieces.get(&top_left_id).unwrap();
         let bottom_right_edges = self.edges_with_matches(chunk);
 
+        let entry = self
+            .puzzle_pieces
+            .entry(top_left_id)
+            .or_insert_with(|| MapChunk::new(top_left_id));
+        while !((bottom_right_edges.contains(&entry.right)
+            || bottom_right_edges.contains(&entry.right.reverse()))
+            && (bottom_right_edges.contains(&entry.bottom)
+                || bottom_right_edges.contains(&entry.bottom.reverse())))
         {
-            let entry = self
-                .puzzle_pieces
-                .entry(top_left_id)
-                .or_insert_with(|| MapChunk::new(top_left_id));
-            let one = bottom_right_edges[0].clone();
-            let the_other = bottom_right_edges[1].clone();
-            let mut count = 0;
-            while !((bottom_right_edges.contains(&entry.right)
-                || bottom_right_edges.contains(&entry.right.reverse()))
-                && (bottom_right_edges.contains(&entry.bottom)
-                    || bottom_right_edges.contains(&entry.bottom.reverse())))
-            {
-                println!("one: {}, the other: {}", one, the_other);
-                println!(
-                    "top: {}, right: {}, bottom: {}, left: {}",
-                    entry.top, entry.right, entry.bottom, entry.left
-                );
-                if count > 4 {
-                    break;
-                }
-                count += 1;
-                entry.rotate_left();
-            }
-            println!("found it.");
-            println!(
-                "top: {}, right: {}, bottom: {}, left: {}",
-                entry.top, entry.right, entry.bottom, entry.left
-            );
+            entry.rotate_left();
         }
 
         let mut first_in_row_id = top_left_id;
@@ -335,11 +313,9 @@ impl PuzzleMap {
         let mut x = 0;
         let mut y = 0;
         loop {
-            println!("working on ({}, {})'s neighbor", x, y);
             let neighbor_id = self.find_neighbor(current_id, Dir::Right);
             match neighbor_id {
                 Some(id) => {
-                    println!("Found a neighbor to the right");
                     let entry_right = self.puzzle_pieces.get(&current_id).unwrap().right.clone();
                     x += 1;
                     self.solution.insert((x, y), id);
@@ -360,7 +336,6 @@ impl PuzzleMap {
                         .clone();
                     match neighbor_id {
                         Some(id) => {
-                            println!("Found a neighbor below");
                             y += 1;
                             x = 0;
                             self.solution.insert((x, y), id);
@@ -377,26 +352,124 @@ impl PuzzleMap {
                 }
             }
         }
-
         Ok(())
+    }
+
+    fn max_coords(&self) -> (isize, isize) {
+        self.solution
+            .keys()
+            .max_by_key(|(x, y)| x * y)
+            .copied()
+            .unwrap()
+    }
+
+    fn get_body_at_coords(&self, coords: &(isize, isize)) -> &String {
+        let id = self.solution.get(coords).unwrap();
+        &self.puzzle_pieces.get(id).unwrap().body
+    }
+
+    fn stitch_together_solution(&self) -> String {
+        let (max_x, max_y) = self.max_coords();
+        let example_body = self.get_body_at_coords(&(0, 0));
+        let size = example_body.split('\n').count();
+        let mut out = String::new();
+        for y in 0..=max_y {
+            for line_no in 0..size {
+                for x in 0..=max_x {
+                    let body = self.get_body_at_coords(&(x, y));
+                    let line = body.split('\n').nth(line_no).unwrap();
+                    out += line;
+                }
+                out += "\n";
+            }
+        }
+        out.strip_suffix("\n").unwrap().to_string()
     }
 }
 
+fn get_char_at(string: &String, coord: (isize, isize)) -> Option<char> {
+    if coord.0 < 0 || coord.1 < 0 {
+        return None;
+    }
+    let coord = (coord.0 as usize, coord.1 as usize);
+    string
+        .split('\n')
+        .nth(coord.1)
+        .and_then(|l| l.chars().nth(coord.0))
+}
+
 fn part1(puzzle: &PuzzleMap) -> u64 {
-    let (max_x, max_y) = puzzle
-        .solution
-        .keys()
-        .max_by_key(|(x, y)| x * y)
-        .copied()
-        .unwrap();
+    let (max_x, max_y) = puzzle.max_coords();
     [(0, 0), (0, max_y), (max_x, 0), (max_x, max_y)]
         .iter()
         .map(|k| puzzle.solution.get(k).unwrap())
         .product()
 }
 
+// start here (+0, +0)
+// |
+// v                 #
+// #    ##    ##    ###
+//  #  #  #  #  #  #
+//
 fn part2(puzzle: &PuzzleMap) -> usize {
-    0
+    let image = puzzle.stitch_together_solution();
+    let sea_monster_relative_positions: Vec<(isize, isize)> = vec![
+        (0, 0),
+        (1, 1),
+        (4, 1),
+        (5, 0),
+        (6, 0),
+        (7, 1),
+        (10, 1),
+        (11, 0),
+        (12, 0),
+        (13, 1),
+        (16, 1),
+        (17, 0),
+        (18, 0),
+        (18, -1),
+        (19, 0),
+    ];
+    let size = image.split('\n').next().map(|l| l.len()).unwrap_or(0) as isize;
+    let image_possibilities = vec![
+        image.clone(),
+        image.by_rotating_left(),
+        image.by_rotating_180(),
+        image.by_rotating_right(),
+        image.by_flipping_over_y(),
+        image.by_flipping_over_y().by_rotating_left(),
+        image.by_flipping_over_y().by_rotating_180(),
+        image.by_flipping_over_y().by_rotating_right(),
+        image.by_flipping_over_x().by_rotating_left(),
+        image.by_flipping_over_x().by_rotating_180(),
+        image.by_flipping_over_x().by_rotating_right(),
+    ];
+    let removed_point_count = image_possibilities
+        .iter()
+        .map(|i| {
+            (0..size)
+                .cartesian_product(0..size)
+                .filter(|(x, y)| {
+                    sea_monster_relative_positions
+                        .iter()
+                        .all(|(delta_x, delta_y)| {
+                            get_char_at(i, (x + delta_x, y + delta_y)) == Some('#')
+                        })
+                })
+                .flat_map(|(x, y)| {
+                    sea_monster_relative_positions
+                        .iter()
+                        .map(|(delta_x, delta_y)| (x + delta_x, y + delta_y))
+                        .collect::<Vec<_>>()
+                })
+                .collect::<HashSet<_>>()
+        })
+        .map(|s| s.len())
+        .find(|l| l != &0)
+        .unwrap_or(0);
+
+    image.chars().filter(|c| c == &'#').count() - removed_point_count
 }
 
 fn main() -> Result<()> {
@@ -414,6 +487,8 @@ fn main() -> Result<()> {
 
 #[cfg(test)]
 mod tests {
+    use utils::read_file;
+
     use super::*;
 
     #[test]
@@ -439,6 +514,34 @@ mod tests {
     }
 
     #[test]
+    fn test_stitch() -> Result<()> {
+        let map_chunks = read_chunks("input/test/day20.txt")?;
+        let mut puzzle = PuzzleMap::new(map_chunks);
+        puzzle.solve()?;
+        let image = puzzle.stitch_together_solution();
+        let expected: String = read_file("input/test/day20_res.txt")?;
+
+        let image_possibilities = vec![
+            image.clone(),
+            image.by_rotating_left(),
+            image.by_rotating_180(),
+            image.by_rotating_right(),
+            image.by_flipping_over_y(),
+            image.by_flipping_over_y().by_rotating_left(),
+            image.by_flipping_over_y().by_rotating_180(),
+            image.by_flipping_over_y().by_rotating_right(),
+            image.by_flipping_over_x().by_rotating_left(),
+            image.by_flipping_over_x().by_rotating_180(),
+            image.by_flipping_over_x().by_rotating_right(),
+        ];
+        if image_possibilities.contains(&expected) {
+            Ok(())
+        } else {
+            bail!("Couldn't find a match")
+        }
+    }
+
+    #[test]
     fn test_part1() -> Result<()> {
         let map_chunks = read_chunks("input/test/day20.txt")?;
         let mut puzzle = PuzzleMap::new(map_chunks);
@@ -451,7 +554,8 @@ mod tests {
     #[test]
     fn test_part2() -> Result<()> {
         let map_chunks = read_chunks("input/test/day20.txt")?;
-        let puzzle = PuzzleMap::new(map_chunks);
+        let mut puzzle = PuzzleMap::new(map_chunks);
+        puzzle.solve()?;
         let result = part2(&puzzle);
         assert_eq!(result, 273);
         Ok(())
