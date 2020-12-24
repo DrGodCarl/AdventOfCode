@@ -98,6 +98,7 @@ impl MapChunk {
         }
     }
 
+    #[allow(clippy::ptr_arg)]
     fn make_side_match(&mut self, side: &Dir, to_match: &String) {
         let matchable = vec![to_match.clone(), to_match.reverse()];
         while !matchable.contains(self.edge(side)) {
@@ -252,6 +253,7 @@ impl PuzzleMap {
         }
     }
 
+    #[allow(clippy::ptr_arg)]
     fn get_matches_for_edge(&self, edge: &String) -> Vec<u64> {
         [edge, &edge.reverse()]
             .iter()
@@ -387,6 +389,7 @@ impl PuzzleMap {
     }
 }
 
+#[allow(clippy::ptr_arg)]
 fn get_char_at(string: &String, coord: (isize, isize)) -> Option<char> {
     if coord.0 < 0 || coord.1 < 0 {
         return None;
