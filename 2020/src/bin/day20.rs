@@ -385,7 +385,7 @@ impl PuzzleMap {
                 out += "\n";
             }
         }
-        out.strip_suffix("\n").unwrap().to_string()
+        out.strip_suffix('\n').unwrap().to_string()
     }
 }
 

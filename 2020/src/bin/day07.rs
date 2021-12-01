@@ -90,12 +90,12 @@ fn count_all_internal_bags(bag: &str, bag_graph: &BagGraph) -> usize {
 
 fn part1(bag_graph: &BagGraph) -> usize {
     let shiny_gold = "shiny gold";
-    count_all_containing_bags(&shiny_gold, bag_graph)
+    count_all_containing_bags(shiny_gold, bag_graph)
 }
 
 fn part2(bag_graph: &BagGraph) -> usize {
     let shiny_gold = "shiny gold";
-    count_all_internal_bags(&shiny_gold, bag_graph)
+    count_all_internal_bags(shiny_gold, bag_graph)
 }
 
 fn main() -> Result<()> {

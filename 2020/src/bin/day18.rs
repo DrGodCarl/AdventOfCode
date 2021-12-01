@@ -101,13 +101,13 @@ fn parse_adv(input: &str) -> Result<Expr, String> {
 fn walk(ast: &Expr) -> Number {
     match ast {
         Expr::Add(lhs, rhs) => {
-            let lhs = walk(&lhs);
-            let rhs = walk(&rhs);
+            let lhs = walk(lhs);
+            let rhs = walk(rhs);
             lhs + rhs
         }
         Expr::Mul(lhs, rhs) => {
-            let lhs = walk(&lhs);
-            let rhs = walk(&rhs);
+            let lhs = walk(lhs);
+            let rhs = walk(rhs);
             lhs * rhs
         }
         Expr::Number(num) => *num,
@@ -133,7 +133,7 @@ fn calculate(equation: &str) -> Result<Number, String> {
 }
 
 fn calculate_adv(equation: &str) -> Result<Number, String> {
-    parse_adv(&equation).map(|expr| walk(&expr))
+    parse_adv(equation).map(|expr| walk(&expr))
 }
 
 fn part1(equations: &[String]) -> Number {

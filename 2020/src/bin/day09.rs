@@ -15,10 +15,7 @@ fn part1(numbers: &[i64], preamble: usize) -> Option<i64> {
                 .map(|&i| sum - i)
                 .filter(|i| i * 2 != *sum)
                 .collect();
-            nums.iter()
-                .take(preamble)
-                .find(|&j| possible.contains(j))
-                .is_none()
+            !nums.iter().take(preamble).any(|j| possible.contains(j))
         })
         .and_then(|a| a.last())
         .copied()

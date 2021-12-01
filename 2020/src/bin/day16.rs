@@ -1,4 +1,3 @@
-#![feature(iterator_fold_self)]
 use std::{
     collections::{HashMap, HashSet},
     str::FromStr,
@@ -111,7 +110,7 @@ fn part2(info: &Info) -> u64 {
                         .map(|(idx, _)| idx)
                         .collect::<HashSet<_>>()
                 })
-                .fold_first(|acc, set| acc.intersection(&set).copied().collect());
+                .reduce(|acc, set| acc.intersection(&set).copied().collect());
             (r.field_name.clone(), possible)
         })
         .map(|(key, val)| (key, val.unwrap_or_default()))

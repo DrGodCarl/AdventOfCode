@@ -1,5 +1,3 @@
-#![feature(min_const_generics)]
-
 use std::{collections::HashMap, iter, str::FromStr, string::ParseError};
 
 use anyhow::Result;

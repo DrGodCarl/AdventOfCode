@@ -1,4 +1,3 @@
-#![feature(iterator_fold_self)]
 use std::collections::HashSet;
 
 use anyhow::Result;
@@ -20,7 +19,7 @@ fn count_common_answers(answers: &[&str]) -> usize {
     answers
         .iter()
         .map(|&l| l.chars().collect::<HashSet<_>>())
-        .fold_first(|acc, ans| acc.intersection(&ans).copied().collect())
+        .reduce(|acc, ans| acc.intersection(&ans).copied().collect())
         .map(|s| s.len())
         .unwrap_or(0)
 }

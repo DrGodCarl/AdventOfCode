@@ -1,4 +1,3 @@
-#![feature(iterator_fold_self)]
 #[macro_use]
 extern crate lazy_static;
 
@@ -54,7 +53,7 @@ fn which_ingredients_might_contain_allergen(allergen: &str, foods: &[FoodItem]) 
         .iter()
         .filter(|f| f.allergens.contains(allergen))
         .map(|f| f.ingredients.clone())
-        .fold_first(|acc, ingrs| acc.intersection(&ingrs).cloned().collect())
+        .reduce(|acc, ingrs| acc.intersection(&ingrs).cloned().collect())
         .unwrap_or_default()
 }
 

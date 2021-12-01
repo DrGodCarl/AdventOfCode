@@ -5,6 +5,7 @@ use itertools::Itertools;
 use regex::Regex;
 use utils::read_file;
 
+#[allow(clippy::upper_case_acronyms)]
 enum Instruction {
     NOP(isize),
     ACC(isize),
@@ -60,7 +61,7 @@ impl FromStr for Program {
         let instructions = instuction_re
             .captures_iter(s)
             .map(|c| c.get(1).zip(c.get(2)).zip(c.get(3)))
-            .filter_map(|a| a)
+            .flatten()
             .map(|((instr, sign), amt)| {
                 let sign_factor = match sign.as_str() {
                     "-" => -1,
