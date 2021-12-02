@@ -22,7 +22,7 @@ fn calculate_fuel_considering_fuel(mass: i32) -> i32 {
     if fuel < 0 {
         return 0;
     }
-    return fuel + calculate_fuel_considering_fuel(fuel);
+    fuel + calculate_fuel_considering_fuel(fuel)
 }
 
 fn main() -> Result<()> {
@@ -31,7 +31,10 @@ fn main() -> Result<()> {
     let result1: i32 = input.iter().map(|i| calculate_fuel(*i)).sum();
     println!("part 1: {}", result1);
 
-    let result2: i32 = input.iter().map(|i| calculate_fuel_considering_fuel(*i)).sum();
+    let result2: i32 = input
+        .iter()
+        .map(|i| calculate_fuel_considering_fuel(*i))
+        .sum();
     println!("part 2: {}", result2);
 
     Ok(())

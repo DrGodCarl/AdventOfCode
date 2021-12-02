@@ -4,9 +4,9 @@ extern crate itertools;
 extern crate anyhow;
 
 use anyhow::Result;
+use common::read_input;
 use intcode::Computer;
 use std::collections::VecDeque;
-use common::read_input;
 
 fn run_with(noun: i32, verb: i32, master_program: &[i32]) -> Result<Vec<i32>> {
     let mut program = master_program.to_owned();
@@ -16,7 +16,7 @@ fn run_with(noun: i32, verb: i32, master_program: &[i32]) -> Result<Vec<i32>> {
     let speak = &mut |i| println!("computer says: {}", i);
     let mut computer = Computer::new(program, speak, VecDeque::new());
     computer.run()?;
-    return Ok(computer.mem)
+    Ok(computer.mem)
 }
 
 fn part1(master_program: &[i32]) -> i32 {
@@ -29,8 +29,8 @@ fn part2(master_program: &[i32]) -> Result<i32> {
         let result = Some(run_with(noun, verb, master_program)?[0])
             .filter(|r| *r == 19690720)
             .map(|_| 100 * noun + verb);
-        if result.is_some() {
-            return Ok(result.unwrap());
+        if let Some(answer) = result {
+            return Ok(answer);
         }
     }
     Err(anyhow!("not found."))
