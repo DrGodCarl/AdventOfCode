@@ -21,6 +21,7 @@ def run_2():
         count += 1 if len(phrase) == len(set(ana_phrase)) else 0
     return count
 
+
 if __name__ == '__main__':
-    print run()
-    print run_2()
+    print(run())
+    print(run_2())

@@ -61,7 +61,7 @@ def build_tree(tree_dict, root_node_name):
 
 
 def adjusted_weight(tree, target_weight):
-    print tree.weight, target_weight, tree.full_weight, tree.name
+    print(tree.weight, target_weight, tree.full_weight, tree.name)
     return tree.weight - (tree.full_weight - target_weight)
 
 
@@ -83,5 +83,5 @@ def run_2():
 
 
 if __name__ == '__main__':
-    print run()
-    print run_2()
+    print(run())
+    print(run_2())

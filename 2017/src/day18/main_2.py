@@ -114,4 +114,4 @@ def run():
     return [p for p in (running, sleeping) if p.program_id == 0][0].send_count
 
 if __name__ == '__main__':
-    print run()
+    print(run())

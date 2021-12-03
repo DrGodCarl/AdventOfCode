@@ -36,5 +36,5 @@ def run_2_fast():
             return i
 
 if __name__ == '__main__':
-    print run()
-    print run_2_fast()
+    print(run())
+    print(run_2_fast())

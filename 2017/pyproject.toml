@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "aoc2017"
+version = "0.1.0"
+description = ""
+authors = ["Carl D. Benson <carl.d.benson@gmail.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+regex = "^2021.11.10"
+
+[tool.poetry.dev-dependencies]
+black = "^21.11b1"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+day01 = "aoc2017.src.day01.main:main"

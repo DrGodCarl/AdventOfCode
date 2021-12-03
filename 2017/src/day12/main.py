@@ -40,5 +40,5 @@ def run_2():
     return groups
 
 if __name__ == '__main__':
-    print run()
-    print run_2()
+    print(run())
+    print(run_2())

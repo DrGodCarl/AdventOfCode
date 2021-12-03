@@ -29,6 +29,7 @@ def run_2():
         counter += 1
     return counter
 
+
 if __name__ == '__main__':
-    print run()
-    print run_2()
+    print(run())
+    print(run_2())

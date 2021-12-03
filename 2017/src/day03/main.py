@@ -1,18 +1,20 @@
 import math
 
-INPUT = 265149
+INPUT = 312051
 
 
 def manhattan_to_node(mem_address):
     # using centered octagonal numbers
     plane = math.ceil(.5 * (1 + math.sqrt(mem_address)) - 1)
-    prev_oct_num = math.pow(2 * plane - 1, 2)
-    next_oct_num = math.pow(2 * (plane + 1) - 1, 2)
-    octal_inc = int((next_oct_num - prev_oct_num)/8)
+    prev_oct_num = int(math.pow(2 * plane - 1, 2))
+    next_oct_num = int(math.pow(2 * (plane + 1) - 1, 2))
+    octal_inc = (next_oct_num - prev_oct_num)//8
     # fixes the bug on "corner" cases
     if mem_address in [prev_oct_num + i * octal_inc for i in range(2, 8, 2)]:
         return int((mem_address - prev_oct_num) % octal_inc + plane + octal_inc)
-    return int((mem_address - prev_oct_num) % octal_inc + plane)
+    # I think this min works here. There was a problem about where we were counting from
+    # and I think whatever number it's closest to is the right one. Only tried a few.
+    return int(min((next_oct_num - mem_address), (mem_address - prev_oct_num)) % octal_inc + plane)
 
 
 def run():
@@ -56,6 +58,17 @@ def run_2():
         plane += 1
 
 
+def test():
+    assert manhattan_to_node(2) == 1
+    assert manhattan_to_node(3) == 2
+    assert manhattan_to_node(13) == 4
+    assert manhattan_to_node(15) == 2
+    assert manhattan_to_node(23) == 2
+    assert manhattan_to_node(1024) == 31
+    assert manhattan_to_node(INPUT) == 430
+
+
 if __name__ == '__main__':
-    print run()
-    print run_2()
+    test()
+    print(run())
+    print(run_2())

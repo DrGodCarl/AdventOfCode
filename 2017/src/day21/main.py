@@ -105,5 +105,5 @@ def run_2():
     return sum(len(filter(lambda c: c == '#', sub_arr)) for sub_arr in enhanced)
 
 if __name__ == '__main__':
-    print run()
-    print run_2()
+    print(run())
+    print(run_2())

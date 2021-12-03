@@ -23,6 +23,7 @@ def run_2():
                         ], [])
     )
 
+
 if __name__ == '__main__':
-    print run()
-    print run_2()
+    print(run())
+    print(int(run_2()))

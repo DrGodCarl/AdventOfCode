@@ -121,4 +121,4 @@ def run():
     return machine.checksum()
 
 if __name__ == '__main__':
-    print run()
+    print(run())

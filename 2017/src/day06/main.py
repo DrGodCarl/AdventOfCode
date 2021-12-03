@@ -2,11 +2,11 @@
 
 def get_memory_banks(file_name):
     with open('../../resources/' + file_name, 'r') as fp:
-        return map(int, fp.read().split('\t'))
+        return [int(i) for i in fp.read().split('\t')]
 
 
 def str_mem(memory):
-    return ''.join(map(str, memory))
+    return ''.join([str(m) for m in memory])
 
 
 def run():
@@ -48,6 +48,7 @@ def run_2():
         current_memory = memory[:]
     return count - past_mem[str_mem(current_memory)] + 1
 
+
 if __name__ == '__main__':
-    print run()
-    print run_2()
+    print(run())
+    print(run_2())

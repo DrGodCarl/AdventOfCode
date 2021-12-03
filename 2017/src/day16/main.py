@@ -58,5 +58,5 @@ def run_2():
     return ''.join(results[ITERATIONS % len(results)])
 
 if __name__ == '__main__':
-    print run()
-    print run_2()
+    print(run())
+    print(run_2())

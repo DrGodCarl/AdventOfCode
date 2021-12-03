@@ -30,5 +30,5 @@ def run_2():
     return len([1 for _ in range(RUN_2_LENGTH) if a.next() & 0xFFFF == b.next() & 0xFFFF])
 
 if __name__ == '__main__':
-    print run()
-    print run_2()
+    print(run())
+    print(run_2())
