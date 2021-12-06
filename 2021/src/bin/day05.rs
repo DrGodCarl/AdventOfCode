@@ -1,7 +1,8 @@
 use gcd::Gcd;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashSet;
 
 use anyhow::Result;
+use itertools::Itertools;
 use utils::read_lines;
 
 #[derive(parse_display::FromStr, PartialEq, Eq, Hash, Debug, Clone, Copy)]
@@ -28,18 +29,9 @@ fn lattice_points(line: &Line) -> HashSet<Point> {
     let factor = (rise.abs() as usize).gcd(run.abs() as usize) as isize;
     let run = run / factor;
     let rise = rise / factor;
-    // If the x coord is going down, adjust for that
-    let run_range: Box<dyn Iterator<Item = isize>> = if run > 0 {
-        Box::new(line.start.0..=line.end.0)
-    } else {
-        Box::new((line.end.0..=line.start.0).rev())
-    };
-    // If the y coord is going down, adjust for that
-    let rise_range: Box<dyn Iterator<Item = isize>> = if rise > 0 {
-        Box::new(line.start.1..=line.end.1)
-    } else {
-        Box::new((line.end.1..=line.start.1).rev())
-    };
+    // Either it's going up or it's going down - chaining together will catch the right one.
+    let run_range = (line.start.0..=line.end.0).chain((line.end.0..=line.start.0).rev());
+    let rise_range = (line.start.1..=line.end.1).chain((line.end.1..=line.start.1).rev());
     if run == 0 {
         // If the x coord is unchanging, just hit every int between y start and end
         rise_range
@@ -67,12 +59,9 @@ fn count_overlapping_points(lines: &[Line]) -> usize {
     lines
         .iter()
         .flat_map(|l| lattice_points(l))
-        .fold(HashMap::new(), |mut map, p| {
-            *map.entry(p).or_insert(0) += 1;
-            map
-        })
-        .iter()
-        .filter(|(_, &c)| c > 1)
+        .counts()
+        .values()
+        .filter(|&&c| c > 1)
         .count()
 }
 
