@@ -22,6 +22,7 @@ name = "aoc2021"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "bitflags",
  "gcd",
  "itertools",
  "lazy_static",
