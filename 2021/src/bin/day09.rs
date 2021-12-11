@@ -2,11 +2,11 @@ use std::collections::{HashMap, HashSet};
 
 use anyhow::Result;
 use itertools::Itertools;
-use utils::read_lines;
+use utils::read_grid;
 
-type SeaFloorReadings = HashMap<(isize, isize), u8>;
+type SeaFloorReadings = HashMap<(i64, i64), u8>;
 
-fn neighbor_points(point: &(isize, isize)) -> [(isize, isize); 4] {
+fn neighbor_points(point: &(i64, i64)) -> [(i64, i64); 4] {
     [
         (point.0 + 1, point.1),
         (point.0 - 1, point.1),
@@ -15,13 +15,13 @@ fn neighbor_points(point: &(isize, isize)) -> [(isize, isize); 4] {
     ]
 }
 
-fn find_max_points(readings: &SeaFloorReadings) -> (isize, isize) {
+fn find_max_points(readings: &SeaFloorReadings) -> (i64, i64) {
     readings
         .keys()
-        .fold((0isize, 0isize), |(x, y), (a, b)| (*a.max(&x), *b.max(&y)))
+        .fold((0i64, 0i64), |(x, y), (a, b)| (*a.max(&x), *b.max(&y)))
 }
 
-fn find_low_points(readings: &SeaFloorReadings) -> HashSet<(isize, isize)> {
+fn find_low_points(readings: &SeaFloorReadings) -> HashSet<(i64, i64)> {
     let (x_max, y_max) = find_max_points(readings);
     (0..=x_max)
         .cartesian_product(0..=y_max)
@@ -36,9 +36,9 @@ fn find_low_points(readings: &SeaFloorReadings) -> HashSet<(isize, isize)> {
 // https://en.wikipedia.org/wiki/Flood_fill
 fn flood_fill(
     readings: &SeaFloorReadings,
-    point: &(isize, isize),
+    point: &(i64, i64),
     fill_color: u16,
-    fills: &mut HashMap<u16, HashSet<(isize, isize)>>,
+    fills: &mut HashMap<u16, HashSet<(i64, i64)>>,
 ) -> bool {
     if readings.get(point).unwrap_or(&9) == &9 {
         return false;
@@ -65,7 +65,7 @@ fn part1(readings: &SeaFloorReadings) -> usize {
 fn part2(readings: &SeaFloorReadings) -> usize {
     let (x_max, y_max) = find_max_points(readings);
     let mut fill_color = 1;
-    let mut fills: HashMap<u16, HashSet<(isize, isize)>> = HashMap::new();
+    let mut fills: HashMap<u16, HashSet<(i64, i64)>> = HashMap::new();
     fills.insert(fill_color, HashSet::new());
     for point in (0..=x_max).cartesian_product(0..=y_max) {
         if flood_fill(readings, &point, fill_color, &mut fills) {
@@ -82,31 +82,8 @@ fn part2(readings: &SeaFloorReadings) -> usize {
         .product()
 }
 
-fn read_input(path: &str) -> Result<SeaFloorReadings> {
-    let lines: Vec<String> = read_lines(path)?;
-    let layout_vec = lines
-        .iter()
-        .map(|l| {
-            l.chars()
-                .filter(|&c| c != '\n')
-                .map(|s| s.to_digit(10).unwrap() as u8)
-                .collect::<Vec<u8>>()
-        })
-        .collect::<Vec<Vec<_>>>();
-    let result = layout_vec
-        .iter()
-        .enumerate()
-        .flat_map(|(y, row)| {
-            row.iter()
-                .enumerate()
-                .map(move |(x, &num)| ((x as isize, y as isize), num))
-        })
-        .collect();
-    Ok(result)
-}
-
 fn main() -> Result<()> {
-    let readings = read_input("input/day09.txt")?;
+    let readings = read_grid("input/day09.txt")?;
     let result = part1(&readings);
     println!("part 1: {}", result);
     let result = part2(&readings);
@@ -116,7 +93,7 @@ fn main() -> Result<()> {
 
 #[test]
 fn test() -> Result<()> {
-    let readings = read_input("input/test/day09.txt")?;
+    let readings = read_grid("input/test/day09.txt")?;
     let result = part1(&readings);
     assert_eq!(result, 15);
     let result = part2(&readings);
