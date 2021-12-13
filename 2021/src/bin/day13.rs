@@ -23,7 +23,6 @@ enum DoInstructions {
 struct FoldingPaper {
     marked_points: HashSet<Point>,
     instructions: Vec<Instruction>,
-    max_bounds: Point,
 }
 
 fn calculate_max_bounds(points: &HashSet<Point>) -> Point {
@@ -33,15 +32,6 @@ fn calculate_max_bounds(points: &HashSet<Point>) -> Point {
 }
 
 impl FoldingPaper {
-    fn new(marked_points: HashSet<Point>, instructions: Vec<Instruction>) -> Self {
-        let max_bounds = calculate_max_bounds(&marked_points);
-        Self {
-            marked_points,
-            instructions,
-            max_bounds,
-        }
-    }
-
     fn count_marks(&self) -> usize {
         self.marked_points.len()
     }
@@ -73,7 +63,6 @@ impl FoldingPaper {
             .filter(|p| p.0 > x_axis)
             .map(|Point(x, y)| Point(reflection(*x), *y));
         self.marked_points = top.chain(bottom).collect();
-        self.max_bounds = calculate_max_bounds(&self.marked_points);
     }
 
     fn fold_y(&mut self, y_axis: u16) {
@@ -85,7 +74,6 @@ impl FoldingPaper {
             .filter(|p| p.1 > y_axis)
             .map(|Point(x, y)| Point(*x, reflection(*y)));
         self.marked_points = top.chain(bottom).collect();
-        self.max_bounds = calculate_max_bounds(&self.marked_points);
     }
 }
 
@@ -96,8 +84,9 @@ fn part1(paper: &mut FoldingPaper) -> usize {
 
 fn part2(paper: &mut FoldingPaper) {
     paper.do_instructions(&DoInstructions::All);
-    for y in 0..=paper.max_bounds.1 {
-        for x in 0..=paper.max_bounds.0 {
+    let max_bounds = calculate_max_bounds(&paper.marked_points);
+    for y in 0..=max_bounds.1 {
+        for x in 0..=max_bounds.0 {
             if paper.marked_points.contains(&Point(x, y)) {
                 print!("#");
             } else {
@@ -119,7 +108,10 @@ fn read_input(path: &str) -> Result<FoldingPaper> {
         .split('\n')
         .map(|s| s.parse())
         .collect::<Result<_, _>>()?;
-    Ok(FoldingPaper::new(marked_points, instructions))
+    Ok(FoldingPaper {
+        marked_points,
+        instructions,
+    })
 }
 
 fn main() -> Result<()> {
