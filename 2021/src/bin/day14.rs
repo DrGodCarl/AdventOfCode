@@ -18,28 +18,41 @@ struct Input {
 }
 
 fn run_polymerization(steps: i16, input: &Input) -> usize {
-    let mut polymer = input.polymer.clone();
+    let mut pair_counts = input
+        .polymer
+        .iter()
+        .tuple_windows()
+        .map(|(a, b)| (*a, *b))
+        .counts();
     for _ in 0..steps {
-        let size = polymer.len();
-        polymer = polymer
-            .iter()
-            .tuple_windows()
-            .enumerate()
-            .flat_map(|(c, (a, b))| {
-                let middle = input.rules.get(&(*a, *b));
-                let mut result = vec![*a];
-                if let Option::Some(m) = middle {
-                    result.push(*m);
-                }
-                if c == size - 2 {
-                    result.push(*b);
-                }
-                result
-            })
-            .collect();
+        let mut new_counts = HashMap::new();
+        for (&k, &v) in input.rules.iter() {
+            let current_count = *pair_counts.get(&k).unwrap_or(&0);
+            if current_count == 0 {
+                continue;
+            }
+            let (f, s) = k;
+            *new_counts.entry((f, v)).or_insert(0) += current_count;
+            *new_counts.entry((v, s)).or_insert(0) += current_count;
+        }
+        pair_counts = new_counts;
     }
-    let counts = polymer.iter().counts();
-    let minmax = counts.values().minmax();
+    let mut char_counts =
+        pair_counts
+            .iter()
+            .fold(HashMap::new(), |mut counts, ((c1, c2), count)| {
+                *counts.entry(c1).or_insert(0) += count;
+                *counts.entry(c2).or_insert(0) += count;
+                counts
+            });
+    // Everything but the first and last characters have been double counted.
+    let first = input.polymer.first().unwrap();
+    let last = input.polymer.last().unwrap();
+    // So count those each once more
+    *char_counts.entry(first).or_insert(0) += 1;
+    *char_counts.entry(last).or_insert(0) += 1;
+    // and halve them.
+    let minmax = char_counts.values().map(|v| v / 2).minmax();
     match minmax {
         itertools::MinMaxResult::MinMax(min, max) => max - min,
         _ => 0,
