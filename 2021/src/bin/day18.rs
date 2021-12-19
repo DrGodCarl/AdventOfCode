@@ -70,6 +70,7 @@ impl DumbNumber {
             match self {
                 DumbNumber::Number(_) => false,
                 DumbNumber::Pair(left, right) => {
+                    // leftmost and rightmost only work here because we know it can't be more layers down.
                     if let Some(l) = to_the_left {
                         *l += *left.leftmost()
                     }

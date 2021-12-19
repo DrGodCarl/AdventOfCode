@@ -58,7 +58,7 @@ fn lattice_points(line: &Line) -> HashSet<Point> {
 fn count_overlapping_points(lines: &[Line]) -> usize {
     lines
         .iter()
-        .flat_map(|l| lattice_points(l))
+        .flat_map(lattice_points)
         .counts()
         .values()
         .filter(|&&c| c > 1)

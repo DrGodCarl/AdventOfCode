@@ -49,12 +49,10 @@ fn intersects(&(v_x, v_y): &(i32, i32), area: &TargetArea) -> bool {
             let y_pos = y_pos(v_y, t);
             area.y_min <= y_pos && y_pos <= area.y_max
         })
-        .filter(|&t| {
+        .any(|t| {
             let x_pos = x_pos(v_x, t, x_cap);
             area.x_min <= x_pos && x_pos <= area.x_max
         })
-        .next()
-        .is_some()
 }
 
 fn part2(area: &TargetArea) -> usize {

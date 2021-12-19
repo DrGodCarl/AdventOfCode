@@ -229,7 +229,7 @@ fn sum_versions(packet: &Packet) -> u64 {
             version,
             operator: _,
             packets,
-        } => *version as u64 + packets.iter().map(|p| sum_versions(p)).sum::<u64>(),
+        } => *version as u64 + packets.iter().map(sum_versions).sum::<u64>(),
     }
 }
 
