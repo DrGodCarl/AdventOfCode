@@ -1,26 +1,38 @@
-#![feature(closure_to_fn_coercion)]
+#![feature(let_else)]
 
 use std::{
     collections::{HashMap, HashSet},
     fs,
-    iter::Scan,
+    ops::Sub,
 };
 
-use anyhow::{Context, Result};
+use anyhow::Result;
 use itertools::Itertools;
-use nom::Parser;
-use parse_display::FromStr;
-use utils::{read_file, read_lines, InputParseError};
+use utils::InputParseError;
 
-#[derive(parse_display::FromStr, Clone, Copy, Hash, PartialEq, Eq)]
+#[derive(parse_display::FromStr, Debug, Clone, Copy, Hash, PartialEq, Eq)]
 #[display("{0},{1},{2}")]
 struct Point(i32, i32, i32);
 
-#[derive(parse_display::FromStr, Clone)]
+impl Sub for Point {
+    type Output = Self;
+
+    fn sub(self, other: Self) -> Self::Output {
+        Self(self.0 - other.0, self.1 - other.1, self.2 - other.2)
+    }
+}
+
+impl Point {
+    fn manhattan_magnitude(&self) -> i32 {
+        self.0.abs() + self.1.abs() + self.2.abs()
+    }
+}
+
+#[derive(parse_display::FromStr, Debug, Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord)]
 #[display("--- scanner {0} ---")]
 struct Id(u8);
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 struct Scanner {
     id: Id,
     points: HashSet<Point>,
@@ -29,7 +41,7 @@ struct Scanner {
 
 impl Scanner {
     fn new(id: Id, points: HashSet<Point>) -> Self {
-        let full_rotations = transformations()
+        let full_rotations = rotations()
             .iter()
             .map(|(&id, rot)| (id, points.iter().map(rot).collect()))
             .collect();
@@ -62,7 +74,7 @@ impl std::str::FromStr for Scanner {
 
 type Transformation = fn(&Point) -> Point;
 
-fn transformations() -> HashMap<usize, Transformation> {
+fn rotations() -> HashMap<usize, Transformation> {
     fn ident(p: &Point) -> Point {
         *p
     }
@@ -79,7 +91,7 @@ fn transformations() -> HashMap<usize, Transformation> {
         Point(-p.0, -p.1, p.2)
     }
     fn odd1(p: &Point) -> Point {
-        Point(p.0, p.2, p.1)
+        Point(-p.0, -p.2, -p.1)
     }
     fn odd2(p: &Point) -> Point {
         Point(-p.0, p.2, p.1)
@@ -119,45 +131,140 @@ fn transformations() -> HashMap<usize, Transformation> {
     transformations.into_iter().enumerate().collect()
 }
 
-fn part1(scanners: &[Scanner]) -> usize {
+struct TransformToBasis {
+    scanner: Id,
+    basis_scanner_id: Id,
+    rotation: Transformation,
+    translation: Point,
+}
+
+impl TransformToBasis {
+    fn apply(&self, p: &Point) -> Point {
+        let p = (self.rotation)(p);
+        p - self.translation
+    }
+}
+
+struct BasisTransformations {
+    basis_transformation: HashMap<Id, TransformToBasis>,
+}
+
+impl BasisTransformations {
+    fn new() -> Self {
+        Self {
+            basis_transformation: HashMap::new(),
+        }
+    }
+
+    fn add(&mut self, from: Id, to: Id, rotation: Transformation, translation: &Point) {
+        self.basis_transformation.insert(
+            from,
+            TransformToBasis {
+                scanner: from,
+                basis_scanner_id: to,
+                rotation,
+                translation: *translation,
+            },
+        );
+    }
+
+    fn apply(&self, scanner: &Id, point: &Point) -> Point {
+        if *scanner == Id(0) {
+            return *point;
+        }
+        let transform = &self.basis_transformation[scanner];
+        let point = transform.apply(point);
+        self.apply(&transform.basis_scanner_id, &point)
+    }
+}
+
+fn both_parts(scanners: &[Scanner]) -> (usize, i32) {
     let mut scanner_iter = scanners.iter();
     let mut next_check = vec![scanner_iter.next().unwrap()];
     let mut to_scan: Vec<&Scanner> = scanner_iter.collect();
+    let mut basis_transformations = BasisTransformations::new();
+    let rotations = rotations();
 
     while let Some(scanner) = next_check.pop() {
+        println!("Testing to map to scanner {:?}", scanner.id);
+        let mut to_scan_next = vec![];
         for &other in to_scan.iter() {
-            // If I ever return...
-            todo!("Need to compare the translation needed between all points in all rotations of `other` and fine a set with 12+ matching translations")
+            if other.full_rotations.iter().any(|(r_id, points)| {
+                let counts = points
+                    .iter()
+                    .cartesian_product(scanner.points.iter())
+                    .map(|(&rotated, &basis)| rotated - basis)
+                    .counts();
+                let Some((p, _)) = counts
+                    .iter()
+                    .find(|(_, &count)| count >= 12) else {
+                        return false;
+                    };
+                basis_transformations.add(other.id, scanner.id, rotations[r_id], p);
+                true
+            }) {
+                println!("Found match! Pushing {:?}", other.id);
+                next_check.push(other);
+            } else {
+                to_scan_next.push(other);
+            }
         }
+        to_scan = to_scan_next;
     }
-    todo!()
-}
 
-fn part2(numbers: &[Scanner]) -> usize {
-    todo!()
+    let all_points: HashSet<_> = scanners
+        .iter()
+        .flat_map(|s| {
+            let basis_transformations = &basis_transformations;
+            s.points
+                .iter()
+                .map(move |p| basis_transformations.apply(&s.id, p))
+        })
+        .collect();
+
+    let translations: Vec<_> = basis_transformations
+        .basis_transformation
+        .values()
+        .map(|b| basis_transformations.apply(&b.scanner, &Point(0, 0, 0)))
+        .collect();
+
+    let max_dist = translations
+        .iter()
+        .cartesian_product(translations.iter())
+        .map(|(&p1, &p2)| p1 - p2)
+        .map(|p| p.manhattan_magnitude())
+        .max()
+        .unwrap();
+
+    (all_points.len(), max_dist)
 }
 
 fn read_input(path: &str) -> Result<Vec<Scanner>> {
-    let s = fs::read_to_string("input/test/day19.txt")?;
+    let s = fs::read_to_string(path)?;
     Ok(s.split("\n\n")
         .map(|s| s.parse::<Scanner>())
         .collect::<Result<Vec<_>, _>>()?)
 }
 
 fn main() -> Result<()> {
-    let numbers = read_input("input/day19.txt")?;
-    let result = part1(&numbers);
-    println!("part 1: {}", result);
-    let result = part2(&numbers);
-    println!("part 2: {}", result);
+    let scanners = read_input("input/day19.txt")?;
+    let (r1, r2) = both_parts(&scanners);
+    println!("part 1: {}", r1);
+    println!("part 2: {}", r2);
     Ok(())
 }
 
-#[test]
-fn test() -> Result<()> {
-    let numbers: Vec<Scanner> = read_input("input/test/day19.txt")?;
-    let result = part1(&numbers);
-    assert_eq!(result, 79);
+#[cfg(test)]
+mod tests {
+    use super::*;
 
-    Ok(())
+    #[test]
+    fn test() -> Result<()> {
+        let scanners: Vec<Scanner> = read_input("input/test/day19.txt")?;
+        let (r1, r2) = both_parts(&scanners);
+        assert_eq!(r1, 79);
+        assert_eq!(r2, 3621);
+
+        Ok(())
+    }
 }
