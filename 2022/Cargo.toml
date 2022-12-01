@@ -1,8 +1,8 @@
 [package]
-name = "aoc2021"
+name = "aoc2022"
 version = "0.1.0"
 authors = ["Carl D. Benson <carl.d.benson@gmail.com>"]
-edition = "2018"
+edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -14,7 +14,7 @@ itertools = "0.10.1"
 lazy_static = "1.4.0"
 nom = "7.1.0"
 num = "0.4.0"
-parse-display = "0.4.0"
+parse-display = "0.6.0"
 pathfinding = "3.0.3"
 regex = "1.4.2"
 
