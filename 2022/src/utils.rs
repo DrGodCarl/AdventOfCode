@@ -68,6 +68,24 @@ where
         .collect()
 }
 
+pub struct VecWrapper<T>(pub Vec<T>);
+
+impl<T> FromStr for VecWrapper<T>
+where
+    T: FromStr,
+{
+    type Err = InputParseError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let vec = s
+            .split('\n')
+            .map(|n| n.parse::<T>())
+            .collect::<Result<Vec<T>, _>>()
+            .map_err(|_| InputParseError)?;
+        Ok(VecWrapper(vec))
+    }
+}
+
 pub fn read_lines<F: FromStr>(path: &str) -> Result<Vec<F>>
 where
     <F as FromStr>::Err: std::error::Error,
