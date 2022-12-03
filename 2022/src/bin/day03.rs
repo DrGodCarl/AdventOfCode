@@ -37,7 +37,7 @@ fn to_priority(c: char) -> usize {
 fn part1(rucksacks: &[Rucksack]) -> usize {
     rucksacks
         .iter()
-        .filter_map(|r| r.0.intersection(&r.1).next().copied())
+        .filter_map(|sack| sack.0.intersection(&sack.1).next().copied())
         .map(to_priority)
         .sum()
 }
@@ -47,11 +47,9 @@ fn part2(rucksacks: &[Rucksack]) -> usize {
         .iter()
         .chunks(3)
         .into_iter()
-        .filter_map(|ch| {
-            ch.map(|r| r.0.union(&r.1).copied().collect::<HashSet<_>>())
-                .reduce(|r1, r2| r1.intersection(&r2).copied().collect())
-                .and_then(|r| r.iter().next().copied())
-        })
+        .map(|chunk| chunk.map(|sack| sack.0.union(&sack.1).copied().collect::<HashSet<_>>()))
+        .filter_map(|sacks| sacks.reduce(|s1, s2| s1.intersection(&s2).copied().collect()))
+        .filter_map(|badge| badge.iter().next().copied())
         .map(to_priority)
         .sum()
 }
