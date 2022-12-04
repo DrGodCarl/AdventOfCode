@@ -26,15 +26,15 @@ impl FromStr for Rucksack {
 
 // Lowercase item types a through z have priorities 1 through 26.
 // Uppercase item types A through Z have priorities 27 through 52.
-fn to_priority(c: char) -> usize {
+fn to_priority(c: char) -> u32 {
     match c {
-        'a'..='z' => c as usize - 'a' as usize + 1,
-        'A'..='Z' => c as usize - 'A' as usize + 27,
+        'a'..='z' => c as u32 - 'a' as u32 + 1,
+        'A'..='Z' => c as u32 - 'A' as u32 + 27,
         _ => panic!("invalid item type"),
     }
 }
 
-fn part1(rucksacks: &[Rucksack]) -> usize {
+fn part1(rucksacks: &[Rucksack]) -> u32 {
     rucksacks
         .iter()
         .filter_map(|sack| sack.0.intersection(&sack.1).next().copied())
@@ -42,7 +42,7 @@ fn part1(rucksacks: &[Rucksack]) -> usize {
         .sum()
 }
 
-fn part2(rucksacks: &[Rucksack]) -> usize {
+fn part2(rucksacks: &[Rucksack]) -> u32 {
     rucksacks
         .iter()
         .chunks(3)

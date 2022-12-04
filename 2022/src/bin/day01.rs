@@ -2,14 +2,14 @@ use anyhow::Result;
 use itertools::Itertools;
 use utils::{read_chunks, VecWrapper};
 
-fn part1(calories: &[VecWrapper<usize>]) -> usize {
+fn part1(calories: &[VecWrapper<u32>]) -> u32 {
     calories.iter().map(|c| c.0.iter().sum()).max().unwrap_or(0)
 }
 
-fn part2(calories: &[VecWrapper<usize>]) -> usize {
+fn part2(calories: &[VecWrapper<u32>]) -> u32 {
     calories
         .iter()
-        .map(|c| c.0.iter().sum::<usize>())
+        .map(|c| c.0.iter().sum::<u32>())
         .sorted()
         .rev()
         .take(3)
@@ -27,7 +27,7 @@ fn main() -> Result<()> {
 
 #[test]
 fn test() -> Result<()> {
-    let numbers: Vec<VecWrapper<usize>> = read_chunks("input/test/day01.txt")?;
+    let numbers: Vec<VecWrapper<u32>> = read_chunks("input/test/day01.txt")?;
     let result = part1(&numbers);
     assert_eq!(result, 24000);
 

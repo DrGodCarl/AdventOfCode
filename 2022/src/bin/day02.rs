@@ -34,7 +34,7 @@ struct Round {
 struct RoundStrategy(Throw, Outcome);
 
 impl Throw {
-    fn score(&self) -> usize {
+    fn score(&self) -> u32 {
         match self {
             Throw::Rock => 1,
             Throw::Paper => 2,
@@ -44,7 +44,7 @@ impl Throw {
 }
 
 impl Round {
-    fn score(&self) -> usize {
+    fn score(&self) -> u32 {
         self.me.score()
             + match (self.opponent, self.me) {
                 (Throw::Rock, Throw::Paper) => 6,
@@ -76,11 +76,11 @@ impl RoundStrategy {
     }
 }
 
-fn part1(rounds: &[Round]) -> usize {
+fn part1(rounds: &[Round]) -> u32 {
     rounds.iter().map(|r| r.score()).sum()
 }
 
-fn part2(round_strats: &[RoundStrategy]) -> usize {
+fn part2(round_strats: &[RoundStrategy]) -> u32 {
     round_strats.iter().map(|r| r.to_round().score()).sum()
 }
 
