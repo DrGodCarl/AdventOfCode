@@ -14,8 +14,7 @@ impl Range {
     fn overlaps(&self, value: &Range) -> bool {
         self.0 <= value.0 && value.0 <= self.1
             || self.0 <= value.1 && value.1 <= self.1
-            || value.0 <= self.0 && self.0 <= value.1
-            || value.0 <= self.1 && self.1 <= value.1
+            || value.contains(self)
     }
 }
 
