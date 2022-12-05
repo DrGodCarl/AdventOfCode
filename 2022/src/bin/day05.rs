@@ -5,7 +5,7 @@ use itertools::Itertools;
 use parse_display::FromStr;
 use utils::{read_sections, InputParseError, VecWrapper};
 
-#[derive(FromStr, PartialEq, Debug, Clone)]
+#[derive(FromStr, PartialEq, Debug, Clone, Eq, PartialOrd, Ord)]
 #[display("[{0}]")]
 struct Crate(char);
 
@@ -33,7 +33,7 @@ impl std::str::FromStr for CrateStacks {
                     .chunks(4)
                     .into_iter()
                     // Try to parse a crate if present.
-                    .map(|c| c.collect::<String>().trim().parse::<Crate>())
+                    .map(|c| c.collect::<String>().trim().parse())
                     .enumerate()
                     // Keep track of the index for each successfully parsed crate
                     .filter_map(|(i, maybe_crate)| maybe_crate.map(|c| (i as u32 + 1, c)).ok())
@@ -63,7 +63,7 @@ fn run(stacks: &mut CrateStacks, instructions: &[Instruction], reverse_moved: bo
     stacks
         .0
         .iter()
-        .sorted_by(|(a, _), (b, _)| a.cmp(b))
+        .sorted()
         .filter_map(|(_, v)| v.last().map(|c| c.0))
         .collect()
 }
