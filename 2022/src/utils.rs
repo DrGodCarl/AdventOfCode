@@ -1,4 +1,5 @@
 use anyhow::Result;
+use itertools::Itertools;
 use num::Integer;
 use std::collections::HashMap;
 use std::convert::TryFrom;
@@ -11,6 +12,24 @@ use std::str::FromStr;
 
 #[derive(Debug, Clone)]
 pub struct InputParseError;
+
+pub struct VecWrapper<T>(pub Vec<T>);
+
+impl<T> FromStr for VecWrapper<T>
+where
+    T: FromStr,
+{
+    type Err = InputParseError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let vec = s
+            .split('\n')
+            .map(|n| n.parse::<T>())
+            .collect::<Result<Vec<T>, _>>()
+            .map_err(|_| InputParseError)?;
+        Ok(VecWrapper(vec))
+    }
+}
 
 impl fmt::Display for InputParseError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -68,22 +87,26 @@ where
         .collect()
 }
 
-pub struct VecWrapper<T>(pub Vec<T>);
-
-impl<T> FromStr for VecWrapper<T>
+// TODO - figure out arbitrary sized heterogenous tuples if possible.
+// Seems like a job for a macro tho.
+pub fn read_sections<T: FromStr, U: FromStr>(path: &str) -> Result<(T, U)>
 where
-    T: FromStr,
+    <T as FromStr>::Err: std::error::Error,
+    <T as FromStr>::Err: Send,
+    <T as FromStr>::Err: Sync,
+    <T as FromStr>::Err: 'static,
+    <U as FromStr>::Err: std::error::Error,
+    <U as FromStr>::Err: Send,
+    <U as FromStr>::Err: Sync,
+    <U as FromStr>::Err: 'static,
 {
-    type Err = InputParseError;
+    let contents = fs::read_to_string(path)?;
 
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let vec = s
-            .split('\n')
-            .map(|n| n.parse::<T>())
-            .collect::<Result<Vec<T>, _>>()
-            .map_err(|_| InputParseError)?;
-        Ok(VecWrapper(vec))
-    }
+    contents
+        .split("\n\n")
+        .collect_tuple()
+        .map(|(a, b)| Ok((a.parse::<T>()?, b.parse::<U>()?)))
+        .unwrap_or(Err(InputParseError.into()))
 }
 
 pub fn read_lines<F: FromStr>(path: &str) -> Result<Vec<F>>
