@@ -9,7 +9,7 @@ fn run(letters: &str, length: usize) -> u32 {
         .as_slice()
         .windows(length)
         .enumerate()
-        .find(|(_, window)| window.iter().tuple_combinations().all(|(a, b)| a != b))
+        .find(|(_, window)| window.iter().duplicates().count() == 0)
         .map(|(i, _)| i as u32)
         .unwrap()
         + length as u32
