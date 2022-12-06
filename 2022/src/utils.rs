@@ -43,6 +43,19 @@ impl std::error::Error for InputParseError {
     }
 }
 
+// TODO - get this working with Patterns instead of chars.
+pub fn parse_delimited<F: FromStr>(line: &str, delimiter: char) -> Result<Vec<F>>
+where
+    <F as FromStr>::Err: std::error::Error,
+    <F as FromStr>::Err: Send,
+    <F as FromStr>::Err: Sync,
+    <F as FromStr>::Err: 'static,
+{
+    line.split(delimiter)
+        .map(|i| Ok(i.parse::<F>()?))
+        .collect::<Result<Vec<_>, _>>()
+}
+
 pub fn parse_comma_separated<F: FromStr>(line: &str) -> Result<Vec<F>>
 where
     <F as FromStr>::Err: std::error::Error,
@@ -50,9 +63,7 @@ where
     <F as FromStr>::Err: Sync,
     <F as FromStr>::Err: 'static,
 {
-    line.split(',')
-        .map(|i| Ok(i.parse::<F>()?))
-        .collect::<Result<Vec<_>, _>>()
+    parse_delimited(line, ',')
 }
 
 pub fn read_comma_separated<F: FromStr>(path: &str) -> Result<Vec<F>>
