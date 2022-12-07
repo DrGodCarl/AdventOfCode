@@ -83,7 +83,7 @@ where
         .unwrap()
 }
 
-pub fn read_chunks<F: FromStr>(path: &str) -> Result<Vec<F>>
+pub fn read_chunks_delimited<F: FromStr>(path: &str, delimiter: &str) -> Result<Vec<F>>
 where
     <F as FromStr>::Err: std::error::Error,
     <F as FromStr>::Err: Send,
@@ -93,9 +93,19 @@ where
     let contents = fs::read_to_string(path)?;
 
     contents
-        .split("\n\n")
+        .split(delimiter)
         .map(|line| Ok(line.parse::<F>()?))
         .collect()
+}
+
+pub fn read_chunks<F: FromStr>(path: &str) -> Result<Vec<F>>
+where
+    <F as FromStr>::Err: std::error::Error,
+    <F as FromStr>::Err: Send,
+    <F as FromStr>::Err: Sync,
+    <F as FromStr>::Err: 'static,
+{
+    read_chunks_delimited(path, "\n\n")
 }
 
 // TODO - figure out arbitrary sized heterogenous tuples if possible.
