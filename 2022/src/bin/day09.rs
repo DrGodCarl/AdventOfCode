@@ -43,21 +43,15 @@ fn run(instructions: &[Instruction], rope_size: u8) -> u32 {
                 let (_, rest_of_rope) = cur_rope.iter().fold(
                     (new_h_pos, Vec::new()),
                     |(effective_h_pos, mut new_rope), t_pos| {
-                        let x_diagonal_detect = (effective_h_pos.0 - t_pos.0) / 2;
-                        let y_diagonal_detect = (effective_h_pos.1 - t_pos.1) / 2;
-                        let new_t_pos = if x_diagonal_detect != 0 && y_diagonal_detect != 0 {
-                            (t_pos.0 + x_diagonal_detect, t_pos.1 + y_diagonal_detect)
-                        } else if t_pos.0 < effective_h_pos.0 - 1 {
-                            (effective_h_pos.0 - 1, effective_h_pos.1)
-                        } else if t_pos.0 > effective_h_pos.0 + 1 {
-                            (effective_h_pos.0 + 1, effective_h_pos.1)
-                        } else if t_pos.1 < effective_h_pos.1 - 1 {
-                            (effective_h_pos.0, effective_h_pos.1 - 1)
-                        } else if t_pos.1 > effective_h_pos.1 + 1 {
-                            (effective_h_pos.0, effective_h_pos.1 + 1)
-                        } else {
-                            (t_pos.0, t_pos.1)
-                        };
+                        let x_dist = effective_h_pos.0 - t_pos.0 as i32;
+                        let y_dist = effective_h_pos.1 - t_pos.1 as i32;
+                        let knot_moves = x_dist.abs() == 2 || y_dist.abs() == 2;
+
+                        let new_t_pos = (
+                            t_pos.0 + x_dist.signum() * knot_moves as i32,
+                            t_pos.1 + y_dist.signum() * knot_moves as i32,
+                        );
+
                         new_rope.push(new_t_pos);
                         (new_t_pos, new_rope)
                     },
