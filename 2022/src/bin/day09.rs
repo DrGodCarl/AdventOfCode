@@ -24,6 +24,17 @@ enum Direction {
     Right,
 }
 
+impl Direction {
+    fn distance_vector(&self) -> (i32, i32) {
+        match self {
+            Direction::Up => (0, 1),
+            Direction::Down => (0, -1),
+            Direction::Left => (-1, 0),
+            Direction::Right => (1, 0),
+        }
+    }
+}
+
 fn run(instructions: &[Instruction], rope_size: u8) -> u32 {
     let rope = (0..rope_size - 1).map(|_| (0, 0)).collect_vec();
     let mut initial_tail_pos = HashSet::new();
@@ -34,12 +45,9 @@ fn run(instructions: &[Instruction], rope_size: u8) -> u32 {
         .fold(
             (initial_tail_pos, rope, (0, 0)),
             |(mut tail_pos, cur_rope, h_pos), d| {
-                let new_h_pos = match d {
-                    Direction::Up => (h_pos.0, h_pos.1 + 1),
-                    Direction::Down => (h_pos.0, h_pos.1 - 1),
-                    Direction::Left => (h_pos.0 - 1, h_pos.1),
-                    Direction::Right => (h_pos.0 + 1, h_pos.1),
-                };
+                let dist = d.distance_vector();
+                let new_h_pos = (h_pos.0 + dist.0, h_pos.1 + dist.1);
+
                 let (_, rest_of_rope) = cur_rope.iter().fold(
                     (new_h_pos, Vec::new()),
                     |(effective_h_pos, mut new_rope), t_pos| {
