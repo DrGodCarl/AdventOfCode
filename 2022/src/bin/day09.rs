@@ -1,7 +1,6 @@
 use std::collections::HashSet;
 
 use anyhow::Result;
-use itertools::Itertools;
 use parse_display::FromStr;
 use utils::read_lines;
 
@@ -35,8 +34,8 @@ impl Direction {
     }
 }
 
-fn run(instructions: &[Instruction], rope_size: u8) -> u32 {
-    let rope = (0..rope_size - 1).map(|_| (0, 0)).collect_vec();
+fn run(instructions: &[Instruction], rope_size: usize) -> u32 {
+    let rope = vec![(0, 0); rope_size - 1];
     let mut initial_tail_pos = HashSet::new();
     initial_tail_pos.insert((0, 0));
     instructions
