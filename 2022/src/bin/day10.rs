@@ -48,7 +48,6 @@ fn part2(instructions: &[Instr]) -> String {
         .fold(
             (0, 1, "".to_string()),
             |(mut cycle, reg_x, mut display), instr| {
-                // let maybe_newline = if cycle % 40 == 0 { "\n" } else { "" };
                 let to_draw = (0..instr.cycle_length())
                     .map(|_| {
                         let pos_to_check = cycle % 40;
