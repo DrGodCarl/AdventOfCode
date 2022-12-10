@@ -1,4 +1,7 @@
+use std::iter;
+
 use anyhow::Result;
+use itertools::Itertools;
 use parse_display::FromStr;
 use utils::read_lines;
 
@@ -11,17 +14,10 @@ enum Instr {
 }
 
 impl Instr {
-    fn cycle_length(&self) -> i32 {
+    fn cycle_values(&self) -> Vec<i32> {
         match self {
-            Instr::AddX(_) => 2,
-            Instr::Noop => 1,
-        }
-    }
-
-    fn apply(&self, x: i32) -> i32 {
-        match self {
-            Instr::AddX(a) => a + x,
-            Instr::Noop => x,
+            Instr::AddX(a) => vec![0, *a],
+            Instr::Noop => vec![0],
         }
     }
 }
@@ -29,43 +25,49 @@ impl Instr {
 fn part1(instructions: &[Instr]) -> i32 {
     instructions
         .iter()
-        .fold((0, 0, 1), |(cycle, sum, reg_x), instr| {
-            let new_cycle = cycle + instr.cycle_length();
-            let new_cycle_offset = (new_cycle + 20) % 40;
-            let should_measure = new_cycle_offset < (cycle + 20) % 40;
-            (
-                new_cycle,
-                sum + should_measure as i32 * (new_cycle - new_cycle_offset) * reg_x,
-                instr.apply(reg_x),
-            )
+        .flat_map(|i| i.cycle_values())
+        .scan(1, |reg_x, val| {
+            *reg_x = *reg_x + val;
+            Some(*reg_x)
         })
-        .1
+        .enumerate()
+        // cycles start at 1.
+        .map(|(cycle, val)| (cycle as i32 + 1, val))
+        // we want to measure from the end of the cycle before the desired one (e.g. what's the value at 19 for 20)
+        .filter(|(cycle, _)| cycle % 40 == 19)
+        // we're measuring at 19, but the cycle number we're looking for starts at 20.
+        .map(|(cycle, val)| (cycle + 1) * val)
+        .sum()
 }
 
 fn part2(instructions: &[Instr]) -> String {
-    instructions
-        .iter()
-        .fold(
-            (0, 1, "".to_string()),
-            |(mut cycle, reg_x, mut display), instr| {
-                let to_draw = (0..instr.cycle_length())
-                    .map(|_| {
-                        let pos_to_check = cycle % 40;
-                        let should_draw_pixel = (reg_x - 1..=reg_x + 1).any(|x| x == pos_to_check);
-                        let maybe_newline = if pos_to_check == 39 { "\n" } else { "" };
-                        let to_draw = if should_draw_pixel { "#" } else { "." };
-                        cycle += 1;
-
-                        to_draw.to_string() + maybe_newline
-                    })
-                    .collect::<String>();
-                display += to_draw.as_str();
-                (cycle, instr.apply(reg_x), display)
-            },
+    // Rust's scan is not consistent with my understanding of scan.
+    // In Haskell, Kotlin, etc. scan will return the initial value
+    // but Rust's scan will not. So we have to add it manually.
+    iter::once(1)
+        .chain(
+            instructions
+                .iter()
+                .flat_map(|i| i.cycle_values())
+                .scan(1, |reg_x, val| {
+                    *reg_x = *reg_x + val;
+                    Some(*reg_x)
+                }),
         )
-        .2
-        .trim()
-        .to_string()
+        .take(240)
+        .enumerate()
+        .map(|(cycle, val)| ((cycle % 40) as i32, val))
+        .map(|(pixel, val)| {
+            if (val - 1..=val + 1).contains(&pixel) {
+                "#"
+            } else {
+                "."
+            }
+        })
+        .chunks(40)
+        .into_iter()
+        .map(|chunk| chunk.collect::<String>())
+        .join("\n")
 }
 
 fn main() -> Result<()> {
