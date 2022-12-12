@@ -23,7 +23,17 @@ impl MapPoint {
     }
 }
 
-fn run_from(map: &Grid<i16, MapPoint>, start: &(i16, i16)) -> u32 {
+fn run_2(
+    map: &Grid<i16, MapPoint>,
+    start: MapPoint,
+    end: &dyn Fn(MapPoint) -> bool,
+    test_valid: &dyn Fn(u32, u32) -> bool,
+) -> u32 {
+    let start = map
+        .iter()
+        .find(|(_, p)| *p == &start)
+        .map(|(p, _)| p)
+        .unwrap();
     let path = bfs(
         start,
         |p| {
@@ -31,38 +41,32 @@ fn run_from(map: &Grid<i16, MapPoint>, start: &(i16, i16)) -> u32 {
             let res = [(1, 0), (-1, 0), (0, 1), (0, -1)]
                 .iter()
                 .map(|(x, y)| (x + p.0, y + p.1))
-                .filter(|n| map.get(n).map(|nh| nh.height()).unwrap_or(u32::MAX) <= height + 1)
+                .filter(|n| {
+                    map.get(n)
+                        .map(|nh| test_valid(nh.height(), height))
+                        .unwrap_or(false)
+                })
                 .collect::<Vec<_>>();
             res
         },
-        |p| map.get(p) == Some(&MapPoint::End),
+        |p| end(map.get(p).copied().unwrap_or(MapPoint::Point(' '))),
     );
     path.map(|p| p.len() as u32 - 1).unwrap_or(u32::MAX)
 }
 
-fn run(map: &Grid<i16, MapPoint>, test_starts: &[(i16, i16)]) -> u32 {
-    test_starts
-        .iter()
-        .map(|start| run_from(map, start))
-        .min()
-        .unwrap_or(u32::MAX)
-}
-
-fn run_with_test(map: &Grid<i16, MapPoint>, test: &dyn Fn(MapPoint) -> bool) -> u32 {
-    let starts = map
-        .iter()
-        .filter(|(_, &v)| test(v))
-        .map(|(p, _)| p.clone())
-        .collect::<Vec<_>>();
-    run(map, &starts)
-}
-
 fn part1(map: &Grid<i16, MapPoint>) -> u32 {
-    run_with_test(map, &|v| v == MapPoint::Start)
+    run_2(map, MapPoint::Start, &|v| v == MapPoint::End, &|a, b| {
+        a <= b + 1
+    })
 }
 
 fn part2(map: &Grid<i16, MapPoint>) -> u32 {
-    run_with_test(map, &|v| v == MapPoint::Start || v == MapPoint::Point('a'))
+    run_2(
+        map,
+        MapPoint::End,
+        &|v| v == MapPoint::Start || v == MapPoint::Point('a'),
+        &|a, b| a >= b - 1,
+    )
 }
 
 fn main() -> Result<()> {
