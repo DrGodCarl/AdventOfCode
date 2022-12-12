@@ -28,7 +28,7 @@ fn run_2(
     start: MapPoint,
     end: &dyn Fn(MapPoint) -> bool,
     test_valid: &dyn Fn(u32, u32) -> bool,
-) -> u32 {
+) -> Option<u32> {
     let start = map
         .iter()
         .find(|(_, p)| *p == &start)
@@ -51,16 +51,16 @@ fn run_2(
         },
         |p| end(map.get(p).copied().unwrap_or(MapPoint::Point(' '))),
     );
-    path.map(|p| p.len() as u32 - 1).unwrap_or(u32::MAX)
+    path.map(|p| p.len() as u32 - 1)
 }
 
-fn part1(map: &Grid<i16, MapPoint>) -> u32 {
+fn part1(map: &Grid<i16, MapPoint>) -> Option<u32> {
     run_2(map, MapPoint::Start, &|v| v == MapPoint::End, &|a, b| {
         a <= b + 1
     })
 }
 
-fn part2(map: &Grid<i16, MapPoint>) -> u32 {
+fn part2(map: &Grid<i16, MapPoint>) -> Option<u32> {
     run_2(
         map,
         MapPoint::End,
@@ -72,9 +72,9 @@ fn part2(map: &Grid<i16, MapPoint>) -> u32 {
 fn main() -> Result<()> {
     let map = read_grid("input/day12.txt")?;
     let result = part1(&map);
-    println!("part 1: {}", result);
+    println!("part 1: {:?}", result);
     let result = part2(&map);
-    println!("part 2: {}", result);
+    println!("part 2: {:?}", result);
     Ok(())
 }
 
@@ -82,10 +82,10 @@ fn main() -> Result<()> {
 fn test() -> Result<()> {
     let map = read_grid("input/test/day12.txt")?;
     let result = part1(&map);
-    assert_eq!(result, 31);
+    assert_eq!(result, Some(31));
 
     let result = part2(&map);
-    assert_eq!(result, 29);
+    assert_eq!(result, Some(29));
 
     Ok(())
 }
