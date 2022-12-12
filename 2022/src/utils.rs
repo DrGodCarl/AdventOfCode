@@ -158,7 +158,9 @@ where
     Ok(result)
 }
 
-pub fn read_grid<PI: Integer, VI: Integer>(path: &str) -> Result<HashMap<(PI, PI), VI>>
+pub type Grid<PI, VI> = HashMap<(PI, PI), VI>;
+
+pub fn read_grid<PI: Integer, VI>(path: &str) -> Result<Grid<PI, VI>>
 where
     VI: FromStr,
     <VI as FromStr>::Err: std::error::Error,
