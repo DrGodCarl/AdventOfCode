@@ -90,30 +90,25 @@ impl FromStr for CrossSectionMap {
 }
 
 fn has_next_step(map: &CrossSectionMap) -> bool {
-    map.sand_path.len() > 0
-        && map
-            .sand_path
-            .last()
-            .map(|p| p.1 < map.max_y)
-            .unwrap_or(false)
+    map.sand_path
+        .last()
+        .map(|p| p.1 < map.max_y)
+        .unwrap_or(false)
 }
 
 fn collides(map: &CrossSectionMap, point: &(i32, i32)) -> bool {
-    map.rock.contains(&point) || map.sand_pile.contains(&point) || map.floor == Some(point.1)
+    map.floor == Some(point.1) || map.rock.contains(&point) || map.sand_pile.contains(&point)
 }
 
 fn take_next_step(map: &mut CrossSectionMap) {
     let sand_point = map.sand_path.pop().unwrap();
-    let mut next_point = (sand_point.0, sand_point.1 + 1);
-    if collides(map, &next_point) {
-        next_point = (sand_point.0 - 1, sand_point.1 + 1);
-    }
-    if collides(map, &next_point) {
-        next_point = (sand_point.0 + 1, sand_point.1 + 1);
-    }
-    if collides(map, &next_point) {
-        next_point = sand_point;
-    }
+    let new_y = sand_point.1 + 1;
+    let next_point = [0, -1, 1]
+        .iter()
+        .map(|x| (sand_point.0 + x, new_y))
+        .find(|p| !collides(map, p))
+        .unwrap_or(sand_point);
+
     if sand_point == next_point {
         map.sand_pile.insert(sand_point);
     } else {
