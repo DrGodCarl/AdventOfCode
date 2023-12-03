@@ -1,0 +1,18 @@
+[package]
+name = "aoc2023"
+version = "0.1.0"
+authors = ["Carl D. Benson <carl.d.benson@gmail.com>"]
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+anyhow = "1.0.75"
+itertools = "0.12.0"
+lazy_static = "1.4.0"
+num = "0.4.1"
+
+
+[lib]
+name = "utils"
+path = "src/utils.rs"
