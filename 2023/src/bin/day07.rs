@@ -1,4 +1,4 @@
-use std::{collections::HashMap, str::FromStr};
+use std::{collections::HashMap, hash::Hash, str::FromStr};
 
 use anyhow::Result;
 use parse_display::FromStr;
@@ -95,65 +95,59 @@ impl<CT: Copy + FromStr + Ord> Hand<CT> {
     }
 }
 
-impl TypeableHand for Hand<Card> {
-    fn hand_type(&self) -> HandType {
-        let cards = self.cards();
-        let mut card_counts = cards
+impl<T: Copy + FromStr + Ord + Hash> Hand<T> {
+    fn get_card_counts(&self, exclude: Option<T>) -> Vec<usize>
+    where
+        T: Ord + Clone,
+    {
+        let mut card_counts = self
+            .cards()
             .iter()
             .fold(HashMap::new(), |mut acc, &card| {
                 *acc.entry(card).or_insert(0) += 1;
                 acc
             })
             .iter()
+            .filter(|(&card, _)| exclude.map(|e| e != card).unwrap_or(true))
             .map(|(_, &count)| count)
             .collect::<Vec<_>>();
         card_counts.sort();
         card_counts.reverse();
         card_counts.truncate(5);
-        match card_counts.as_slice() {
-            [5] => HandType::FiveOfAKind,
-            [4, ..] => HandType::FourOfAKind,
-            [3, 2] => HandType::FullHouse,
-            [3, ..] => HandType::ThreeOfAKind,
-            [2, 2, ..] => HandType::TwoPair,
-            [2, ..] => HandType::OnePair,
-            _ => HandType::HighCard,
-        }
+        card_counts
+    }
+}
+
+fn match_card_counts(card_counts: &[usize]) -> HandType {
+    match card_counts {
+        [5] => HandType::FiveOfAKind,
+        [4, ..] => HandType::FourOfAKind,
+        [3, 2] => HandType::FullHouse,
+        [3, ..] => HandType::ThreeOfAKind,
+        [2, 2, ..] => HandType::TwoPair,
+        [2, ..] => HandType::OnePair,
+        _ => HandType::HighCard,
+    }
+}
+
+impl TypeableHand for Hand<Card> {
+    fn hand_type(&self) -> HandType {
+        let card_counts = self.get_card_counts(None);
+        match_card_counts(&card_counts)
     }
 }
 
 impl TypeableHand for Hand<FunCard> {
     fn hand_type(&self) -> HandType {
-        let cards = self.cards();
-        let mut card_counts = cards
-            .iter()
-            .fold(HashMap::new(), |mut acc, &card| {
-                *acc.entry(card).or_insert(0) += 1;
-                acc
-            })
-            .iter()
-            .filter(|(&card, _)| card != FunCard::Joker)
-            .map(|(_, &count)| count)
-            .collect::<Vec<_>>();
+        let mut card_counts = self.get_card_counts(Some(FunCard::Joker));
         let joker_count = 5 - card_counts.iter().sum::<usize>();
-        card_counts.sort();
-        card_counts.reverse();
-        card_counts.truncate(5);
         let first_count = card_counts.get_mut(0);
         if let Some(first_count) = first_count {
             *first_count += joker_count;
         } else {
             card_counts.push(joker_count);
         }
-        match card_counts.as_slice() {
-            [5] => HandType::FiveOfAKind,
-            [4, ..] => HandType::FourOfAKind,
-            [3, 2] => HandType::FullHouse,
-            [3, ..] => HandType::ThreeOfAKind,
-            [2, 2, ..] => HandType::TwoPair,
-            [2, ..] => HandType::OnePair,
-            _ => HandType::HighCard,
-        }
+        match_card_counts(&card_counts)
     }
 }
 
