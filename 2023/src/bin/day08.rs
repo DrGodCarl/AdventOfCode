@@ -55,6 +55,7 @@ fn to_hash_map(map: &Map) -> HashMap<&String, (&String, &String)> {
         .collect()
 }
 
+#[allow(dead_code)]
 fn detect_loop(map: &Map) {
     let location_to_options = to_hash_map(map);
     let a_keys: Vec<_> = location_to_options
