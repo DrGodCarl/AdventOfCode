@@ -40,7 +40,7 @@ fn calculate_distance(galaxy_map: &Grid<i64, Space>, mut age_scale: u64) -> u64 
     let galaxy_locations = all_galaxy_locations(galaxy_map);
     galaxy_locations
         .iter()
-        .cartesian_product(&galaxy_locations)
+        .tuple_combinations()
         .map(|(a, b)| {
             let (x_min, x_max) = (a.0.min(b.0), a.0.max(b.0));
             let (y_min, y_max) = (a.1.min(b.1), a.1.max(b.1));
@@ -56,7 +56,6 @@ fn calculate_distance(galaxy_map: &Grid<i64, Space>, mut age_scale: u64) -> u64 
             observed_distance as u64 + empty_row_count * age_scale + empty_column_count * age_scale
         })
         .sum::<u64>()
-        / 2
 }
 
 fn part1(values: &Grid<i64, Space>) -> u64 {
