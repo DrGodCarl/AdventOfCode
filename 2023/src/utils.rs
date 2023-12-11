@@ -1,13 +1,17 @@
+#![feature(step_trait)]
+
 use anyhow::Result;
 use itertools::Itertools;
 use num::Integer;
 use std::collections::HashMap;
 use std::convert::TryFrom;
 use std::fmt;
+use std::fmt::Debug;
 use std::fs;
 use std::fs::File;
 use std::hash::Hash;
 use std::io::{BufRead, BufReader};
+use std::iter::Step;
 use std::str::FromStr;
 
 #[derive(Debug, Clone)]
@@ -196,4 +200,22 @@ where
         })
         .collect::<Result<_>>()?;
     Ok(result)
+}
+
+pub fn print_grid<PI: Integer + Step + Hash + Copy, VI: Debug>(grid: &Grid<PI, VI>) {
+    let min_x = *grid.keys().map(|(x, _)| x).min().unwrap();
+    let max_x = *grid.keys().map(|(x, _)| x).max().unwrap();
+    let min_y = *grid.keys().map(|(_, y)| y).min().unwrap();
+    let max_y = *grid.keys().map(|(_, y)| y).max().unwrap();
+
+    for y in min_y..=max_y {
+        for x in min_x..=max_x {
+            if let Some(val) = grid.get(&(x, y)) {
+                print!("{:?}", val);
+            } else {
+                print!(" ");
+            }
+        }
+        println!();
+    }
 }
