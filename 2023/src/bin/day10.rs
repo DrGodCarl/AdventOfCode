@@ -1,7 +1,7 @@
 use std::{collections::HashSet, fmt::Debug, iter};
 
 use anyhow::Result;
-use parse_display::FromStr;
+use parse_display::{Display, FromStr};
 use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
 use utils::{read_grid, Grid};
@@ -156,21 +156,14 @@ fn find_path(pipe_map: &Grid<i32, Tile>) -> Vec<Point> {
     path
 }
 
-#[derive(PartialEq, Eq, Hash, Clone, Copy)]
+#[derive(PartialEq, Eq, Hash, Clone, Copy, Display)]
 enum Flooding {
+    #[display("-")]
     Flooded,
+    #[display(".")]
     NotFlooded,
+    #[display("#")]
     Blocked,
-}
-
-impl Debug for Flooding {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Flooded => write!(f, "-"),
-            Self::NotFlooded => write!(f, "."),
-            Self::Blocked => write!(f, "#"),
-        }
-    }
 }
 
 fn floodable_grid(pipe_map: &Grid<i32, Tile>) -> Grid<i32, Flooding> {
