@@ -16,94 +16,90 @@ fn max_x_y(grid: &Grid<u16, Tile>) -> (u16, u16) {
     (*max_x, *max_y)
 }
 
+enum ReflectionAxis {
+    Vertical,
+    Horizontal,
+}
+
+fn find_reflection_axis<F>(
+    axis: ReflectionAxis,
+    grid: &Grid<u16, Tile>,
+    count_comparison: F,
+) -> Option<u16>
+where
+    F: Fn(u16, u16) -> bool,
+{
+    // This is effectively the same as optionally rotating the grid 90 degrees
+    // and then finding the reflection axis for the vertical axis.
+    let tuple_fn: Box<dyn Fn(u16, u16) -> (u16, u16)> = match axis {
+        ReflectionAxis::Vertical => Box::new(|x, y| (x, y)),
+        ReflectionAxis::Horizontal => Box::new(|x, y| (y, x)),
+    };
+
+    let (max_x, max_y) = max_x_y(grid);
+    let (max_x, max_y) = tuple_fn(max_x, max_y);
+
+    // the line of symmetry (x_test) will be considered to be on the left side of the column we're testing (e.g. "1" means "between 0 and 1")
+    (1..=max_x).find(|x_test| {
+        let (matching, total) = 
+        // for the left side we want to count from x_test down to either 0, or however many columns are on the right (i.e. max_x - x_test + 1)
+        (x_test.saturating_sub(max_x - x_test + 1)..*x_test)
+            // this is because we specifically want to count down so when we zip them later
+            // their equality is testing the reflection
+            .rev()
+            // this gets us an iter of coordinates going from top to bottom, right to left
+            .flat_map(|x| (0..=max_y).map(|y| tuple_fn(x, y)).collect::<Vec<_>>())
+            .zip(
+                // This is the same as above, but for the right side. From x_test to max_x, or however many columns are on the left (i.e. x_test)
+                (*x_test..(x_test * 2).min(max_x + 1))
+                    // this mapping is the same as above
+                    .flat_map(|x| (0..=max_y).map(|y| tuple_fn(x, y)).collect::<Vec<_>>()),
+            )
+            .fold((0, 0), |(matching, total), (left, right)| {
+                // count the number of matching tiles and the total number of tiles
+                (matching + (grid[&left] == grid[&right]) as u16, total + 1)
+            });
+        // compare them according to the function that was passed in
+        count_comparison(matching, total)
+    })
+}
+
 fn find_vertical_reflection_axis<F>(grid: &Grid<u16, Tile>, count_comparison: F) -> Option<u16>
 where
     F: Fn(u16, u16) -> bool,
 {
-    let (max_x, max_y) = max_x_y(grid);
-    (1..=max_x)
-        .map(|x_test| {
-            (
-                x_test,
-                (x_test.saturating_sub(max_x - x_test + 1)..x_test)
-                    .rev()
-                    .flat_map(|x| (0..=max_y).map(|y| (x, y)).collect::<Vec<_>>())
-                    .collect::<Vec<_>>(),
-                (x_test..(x_test * 2).min(max_x + 1))
-                    .flat_map(|x| (0..=max_y).map(|y| (x, y)).collect::<Vec<_>>())
-                    .collect::<Vec<_>>(),
-            )
-        })
-        .find(|(_, left, right)| {
-            let (matching, total) =
-                left.iter()
-                    .zip(right)
-                    .fold((0, 0), |(matching, total), (left, right)| {
-                        if grid[&left] == grid[&right] {
-                            (matching + 1, total + 1)
-                        } else {
-                            (matching, total + 1)
-                        }
-                    });
-            count_comparison(matching, total)
-        })
-        .map(|(x, _, _)| x)
+    find_reflection_axis(ReflectionAxis::Vertical, grid, count_comparison)
 }
 
 fn find_horizontal_reflection_axis<F>(grid: &Grid<u16, Tile>, count_comparison: F) -> Option<u16>
 where
     F: Fn(u16, u16) -> bool,
 {
-    let (max_x, max_y) = max_x_y(grid);
-    (1..=max_y)
-        .map(|y_test| {
-            (
-                y_test,
-                (y_test.saturating_sub(max_y - y_test + 1)..y_test)
-                    .rev()
-                    .flat_map(|y| (0..=max_x).map(|x| (x, y)).collect::<Vec<_>>())
-                    .collect::<Vec<_>>(),
-                (y_test..(y_test * 2).min(max_y + 1))
-                    .flat_map(|y| (0..=max_x).map(|x| (x, y)).collect::<Vec<_>>())
-                    .collect::<Vec<_>>(),
-            )
-        })
-        .find(|(_, left, right)| {
-            let (matching, total) =
-                left.iter()
-                    .zip(right)
-                    .fold((0, 0), |(matching, total), (left, right)| {
-                        if grid[&left] == grid[&right] {
-                            (matching + 1, total + 1)
-                        } else {
-                            (matching, total + 1)
-                        }
-                    });
-            count_comparison(matching, total)
-        })
-        .map(|(y, _, _)| y)
+    find_reflection_axis(ReflectionAxis::Horizontal, grid, count_comparison)
 }
 
 fn part1(maps: &[Grid<u16, Tile>]) -> u16 {
+    let count_comparison = |matching, total| matching == total;
     let verticals: u16 = maps
         .iter()
-        .filter_map(|m| find_vertical_reflection_axis(m, |matching, total| matching == total))
+        .filter_map(|m| find_vertical_reflection_axis(m, count_comparison))
         .sum();
     let horizontals: u16 = maps
         .iter()
-        .filter_map(|m| find_horizontal_reflection_axis(m, |matching, total| matching == total))
+        .filter_map(|m| find_horizontal_reflection_axis(m, count_comparison))
         .sum();
     verticals + 100 * horizontals
 }
 
 fn part2(maps: &[Grid<u16, Tile>]) -> u16 {
+    let count_comparison = |matching, total| matching == total - 1;
     let verticals: u16 = maps
         .iter()
-        .filter_map(|m| find_vertical_reflection_axis(m, |matching, total| matching == total - 1))
+        .filter_map(|m| find_vertical_reflection_axis(m, count_comparison))
         .sum();
     let horizontals: u16 = maps
         .iter()
-        .filter_map(|m| find_horizontal_reflection_axis(m, |matching, total| matching == total - 1))
+        .filter_map(|m| find_horizontal_reflection_axis(m, count_comparison))
         .sum();
     verticals + 100 * horizontals
 }
