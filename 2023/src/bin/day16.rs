@@ -3,6 +3,7 @@ use std::collections::HashSet;
 use anyhow::Result;
 use itertools::Itertools;
 use parse_display::{Display, FromStr};
+use rayon::prelude::*;
 use utils::{read_grid, Grid};
 
 type Point = (i16, i16);
@@ -115,10 +116,23 @@ fn part2(grid: &Grid<i16, Tile>) -> usize {
     let (x_max, y_max) = max_x_y(grid);
     // We need to start the beam outside the grid, so generate all beams starting outside and pointing in.
     (0..=x_max)
+        .into_par_iter()
         .map(|x| Beam((x, -1), Direction::South))
-        .chain((0..=x_max).map(|x| Beam((x, y_max + 1), Direction::North)))
-        .chain((0..=y_max).map(|y| Beam((-1, y), Direction::East)))
-        .chain((0..=y_max).map(|y| Beam((x_max + 1, y), Direction::West)))
+        .chain(
+            (0..=x_max)
+                .into_par_iter()
+                .map(|x| Beam((x, y_max + 1), Direction::North)),
+        )
+        .chain(
+            (0..=y_max)
+                .into_par_iter()
+                .map(|y| Beam((-1, y), Direction::East)),
+        )
+        .chain(
+            (0..=y_max)
+                .into_par_iter()
+                .map(|y| Beam((x_max + 1, y), Direction::West)),
+        )
         .map(|beam| run_with_initial_beam(grid, beam))
         .max()
         .unwrap_or_default()
