@@ -139,20 +139,20 @@ fn part2(grid: &Grid<i16, Tile>) -> usize {
 }
 
 fn main() -> Result<()> {
-    let maps = read_grid("input/day16.txt")?;
-    let result = part1(&maps);
+    let grid = read_grid("input/day16.txt")?;
+    let result = part1(&grid);
     println!("part 1: {}", result);
-    let result = part2(&maps);
+    let result = part2(&grid);
     println!("part 2: {}", result);
     Ok(())
 }
 
 #[test]
 fn test() -> Result<()> {
-    let maps = read_grid("input/test/day16.txt")?;
-    let result = part1(&maps);
+    let grid = read_grid("input/test/day16.txt")?;
+    let result = part1(&grid);
     assert_eq!(result, 46);
-    let result = part2(&maps);
+    let result = part2(&grid);
     assert_eq!(result, 51);
     Ok(())
 }
